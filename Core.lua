@@ -16,6 +16,14 @@ F.DEFAULTS = {
     boostSound = true,        -- turn up effects and turn down music/ambience while fishing
     announce = true,          -- one line in chat for each catch
     debug = false,            -- /fishie debug: explain what Fishie sees in chat
+    clickMod = "none",        -- hold shift / ctrl / alt for the double-click to count ("none" = no key)
+    lureChoice = "best",      -- "best" or "weakest" lure first
+    refreshLure = true,       -- put a new lure on when the old one has under a minute left
+    warnLure = true,          -- chat warning when the lure is about to run out
+    autoLoot = true,          -- turn on auto-loot while fishing, then put it back
+    autoReturn = 0,           -- minutes without fishing before the normal outfit comes back (0 = never)
+    showHUD = false,          -- small on-screen box with the cast timer, lure and catches
+    hudPos = {},              -- where you dragged the HUD
     outfit = {},              -- [slot] = item link, the gear you want on while fishing
     normal = {},              -- [slot] = item link, what you had on before switching
     fishing = false,          -- true while the fishing outfit is on
@@ -105,6 +113,10 @@ local TOGGLES = {
     pole = { "autoPole", "Equip a pole on double-click" },
     sound = { "boostSound", "Fishing sound boost" },
     announce = { "announce", "Chat line for each catch" },
+    refreshlure = { "refreshLure", "Replace a lure that is about to run out" },
+    warnlure = { "warnLure", "Warn when the lure is about to run out" },
+    autoloot = { "autoLoot", "Auto-loot while fishing" },
+    hud = { "showHUD", "On-screen fishing box" },
 }
 
 SLASH_FISHIE1 = "/fishie"
@@ -131,6 +143,10 @@ SlashCmdList.FISHIE = function(input)
         if v == "on" then F.db[key] = true elseif v == "off" then F.db[key] = false else F.db[key] = not F.db[key] end
         Print(label .. ": " .. (F.db[key] and "on" or "off"))
         if F.UI then F.UI.Refresh() end
+    elseif cmd == "minimap" then
+        F.db.minimap.show = not F.db.minimap.show
+        Print("Minimap button " .. (F.db.minimap.show and "shown (reload to bring it back)." or "hidden."))
+        if F.UI and F.UI.UpdateMinimap then F.UI.UpdateMinimap() end
     elseif cmd == "debug" then
         local v = rest:lower()
         if v == "on" then F.db.debug = true elseif v == "off" then F.db.debug = false else F.db.debug = not F.db.debug end
@@ -143,7 +159,8 @@ SlashCmdList.FISHIE = function(input)
         Print("/fishie save - remember what you're wearing as your fishing outfit")
         Print("/fishie stats | reset - this session's catches")
         Print("/fishie applylure - put a lure on your pole now (use from a macro or button)")
-        Print("/fishie doubleclick | lure | pole | sound | announce [on|off]")
+        Print("/fishie doubleclick | lure | pole | sound | announce | refreshlure | warnlure | autoloot | hud [on|off]")
+        Print("/fishie minimap - show or hide the minimap button")
         Print("/fishie debug [on|off] - explain every click, cast and catch in chat")
         Print("/fishie probe - show what the game reports about your pole and lures")
     end

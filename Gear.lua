@@ -95,18 +95,33 @@ end
 ---------------------------------------------------------------------------
 -- Lures
 ---------------------------------------------------------------------------
--- Best lure in your bags: itemID, bonus; or nil.
+-- The lure to use from your bags: itemID, bonus; or nil. "best" or "weakest" first, by setting.
 function G.BestLure()
-    for _, l in ipairs(G.LURES) do
+    local weakest = F.db and F.db.lureChoice == "weakest"
+    local first, last = 1, #G.LURES
+    local step = 1
+    if weakest then first, last, step = #G.LURES, 1, -1 end
+    for i = first, last, step do
+        local l = G.LURES[i]
         if Count(l[1]) > 0 then return l[1], l[2] end
     end
 end
 
--- Does the pole already carry a lure or other enchant?
+-- Seconds left on the pole's lure, or nil when there is none.
+function G.LureTimeLeft()
+    if not GetWeaponEnchantInfo then return nil end
+    local has, exp = GetWeaponEnchantInfo()
+    if not has then return nil end
+    return exp and (exp / 1000) or 9999
+end
+
+-- Does the pole already carry a lure? A lure with under a minute left counts as none, when
+-- replacing them is switched on.
 function G.PoleHasLure()
-    if not GetWeaponEnchantInfo then return false end
-    local has = GetWeaponEnchantInfo()
-    return has and true or false
+    local left = G.LureTimeLeft()
+    if not left then return false end
+    if F.db and F.db.refreshLure and left < 60 then return false end
+    return true
 end
 
 -- Macro text that applies a lure to the pole, or nil when none is needed or available.

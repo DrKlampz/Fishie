@@ -46,6 +46,25 @@ local function KeyDownMode()
     return GetCVar and GetCVar("ActionButtonUseKeyDown") == "1"
 end
 
+-- Choose what the button does right now: put a lure on, or cast. Returns "lure" or "cast".
+function C.Prepare()
+    if InCombatLockdown and InCombatLockdown() then return nil end
+    local lure = F.Gear.LureMacro()
+    local macro, what
+    if lure then macro, what = lure, "lure" else macro, what = "/cast " .. C.SpellName(), "cast" end
+    btn:SetAttribute("macrotext", macro)
+    btn:RegisterForClicks(KeyDownMode() and "AnyDown" or "AnyUp")
+    return what
+end
+
+local function ModHeld()
+    local m = F.db and F.db.clickMod or "none"
+    if m == "shift" then return IsShiftKeyDown and IsShiftKeyDown() end
+    if m == "ctrl" then return IsControlKeyDown and IsControlKeyDown() end
+    if m == "alt" then return IsAltKeyDown and IsAltKeyDown() end
+    return true
+end
+
 -- Arm the button for the click in progress. Returns what it will do, for the log/tests.
 function C.Arm()
     if InCombatLockdown and InCombatLockdown() then return nil end
@@ -54,11 +73,7 @@ function C.Arm()
         G.EnsurePole()
         return "pole"
     end
-    local lure = G.LureMacro()
-    local macro, what
-    if lure then macro, what = lure, "lure" else macro, what = "/cast " .. C.SpellName(), "cast" end
-    btn:SetAttribute("macrotext", macro)
-    btn:RegisterForClicks(KeyDownMode() and "AnyDown" or "AnyUp")
+    local what = C.Prepare()
     ClearOverrideBindings(btn)
     SetOverrideBindingClick(btn, true, "BUTTON2", "FishieCastButton")
     armedAt = GetTime()
@@ -67,6 +82,9 @@ function C.Arm()
     C_Timer.After(1.5, function() if mine == clearTimer then Disarm() end end)
     return what
 end
+
+-- A key bound to the button (Key Bindings > Fishie) gets the same lure-or-cast choice.
+btn:SetScript("PreClick", function() C.Prepare() end)
 
 btn:SetScript("PostClick", function()
     Disarm()
@@ -77,6 +95,7 @@ end)
 function C.OnWorldDown(button)
     if button ~= "RightButton" then return end
     if not (F.db and F.db.doubleClick) then return end
+    if not ModHeld() then F.Debug("modifier not held, ignoring click") return end
     local now = GetTime()
     F.Debug(("world right-click down (%.2fs after the last one)"):format(now - lastUp))
     if now - lastUp <= (F.db.clickWindow or 0.4) and not armedAt then
@@ -88,6 +107,9 @@ end
 function C.OnWorldUp(button)
     if button == "RightButton" then lastUp = GetTime() F.Debug("world right-click up") end
 end
+
+BINDING_HEADER_FISHIE = "Fishie"
+_G["BINDING_NAME_CLICK FishieCastButton:LeftButton"] = "Cast Fishing (lure first when needed)"
 
 if WorldFrame then
     WorldFrame:HookScript("OnMouseDown", function(_, button) C.OnWorldDown(button) end)
@@ -114,7 +136,20 @@ local function Boost()
     SetVol("Sound_AmbienceVolume", 0)
 end
 
+local savedLoot
+local function BoostLoot()
+    if savedLoot ~= nil or not (F.db and F.db.autoLoot) or not GetCVar then return end
+    savedLoot = GetCVar("autoLootDefault")
+    SetVol("autoLootDefault", 1)
+end
+local function RestoreLoot()
+    if savedLoot == nil then return end
+    SetVol("autoLootDefault", savedLoot)
+    savedLoot = nil
+end
+
 local function Restore()
+    RestoreLoot()
     if not saved then return end
     for k, v in pairs(saved) do SetVol(k, v) end
     saved = nil
@@ -138,6 +173,9 @@ function F.IsFishingNow() return GetTime() < F.fishingUntil end
 local function CastStarted(spellID)
     if IsFishingChannel() or (spellID and FISHING_SET[spellID]) then
         F.fishingUntil = GetTime() + 30
+        F.lastFish = GetTime()
+        F.castStart = GetTime()
+        BoostLoot()
         Boost()
         F.Fire("cast")
         F.Debug("fishing cast started")
@@ -164,3 +202,29 @@ F.On("UNIT_SPELLCAST_CHANNEL_STOP", function(_, unit)
 end)
 F.On("PLAYER_LOGOUT", Restore)
 F.On("PLAYER_ENTERING_WORLD", function() cachedName = nil end)
+
+---------------------------------------------------------------------------
+-- Housekeeping every few seconds: lure warning, and back to normal gear after a quiet spell
+---------------------------------------------------------------------------
+local warned = false
+local function Tick()
+    if F.db then
+        local left = F.Gear.LureTimeLeft()
+        if left and left < 60 and F.db.warnLure and not warned then
+            warned = true
+            F.Print("Your lure is about to run out.")
+        elseif not left or left > 120 then
+            warned = false
+        end
+        local mins = F.db.autoReturn or 0
+        if mins > 0 and F.db.fishing and F.lastFish and not F.IsFishingNow()
+           and GetTime() - F.lastFish > mins * 60 then
+            F.lastFish = nil
+            F.Debug("quiet for " .. mins .. " minutes: back to normal gear")
+            F.Gear.Switch()
+        end
+    end
+    C_Timer.After(10, Tick)
+end
+F.AddHook("loaded", function() C_Timer.After(10, Tick) end)
+C.Tick = Tick

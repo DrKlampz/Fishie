@@ -39,16 +39,39 @@ local function Button(parent, text, w, onClick)
     return b
 end
 
-local function Check(parent, text, key)
+local function Check(parent, text, get, set)
     local cb = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
     cb:SetSize(24, 24)
     if cb.text then cb.text:SetText("") end
     if cb.Text then cb.Text:SetText("") end
     local l = Label(cb, "GameFontHighlight", text)
     l:SetPoint("LEFT", cb, "RIGHT", 2, 1)
-    cb:SetScript("OnClick", function(self) F.db[key] = self:GetChecked() and true or false end)
-    cb.key = key
+    cb:SetScript("OnClick", function(self) set(self:GetChecked() and true or false) end)
+    cb.get = get
     return cb
+end
+
+-- A button that steps through a list of choices and shows the current one.
+local function Cycle(parent, label, choices, get, set)
+    local row = CreateFrame("Frame", nil, parent)
+    row:SetSize(400, 24)
+    local fs = Label(row, "GameFontHighlight", label)
+    fs:SetPoint("LEFT", 4, 0)
+    local b = Button(row, "", 110, nil)
+    b:SetPoint("RIGHT", 0, 0)
+    b:SetScript("OnClick", function()
+        local cur, idx = get(), 1
+        for i, c in ipairs(choices) do if c[1] == cur then idx = i end end
+        local nxt = choices[idx % #choices + 1]
+        set(nxt[1])
+        b:SetText(nxt[2])
+    end)
+    function row.Refresh()
+        local cur = get()
+        for _, c in ipairs(choices) do if c[1] == cur then b:SetText(c[2]) return end end
+        b:SetText(choices[1][2])
+    end
+    return row
 end
 
 local function PoleLine()
@@ -136,26 +159,112 @@ local function BuildCatches(p)
 end
 
 local function BuildSetup(p)
+    local function dbkey(k) return function() return F.db[k] end, function(v) F.db[k] = v end end
     local opts = {
         { "Double right-click to cast", "doubleClick" },
         { "Put a lure on the pole when it has none", "autoLure" },
+        { "Replace a lure that is about to run out", "refreshLure" },
+        { "Warn when the lure is about to run out", "warnLure" },
         { "Equip a pole when you double-click without one", "autoPole" },
+        { "Auto-loot while fishing", "autoLoot" },
         { "Turn up effects, turn down music while fishing", "boostSound" },
         { "Chat line for each catch", "announce" },
+        { "Show the on-screen fishing box", "showHUD" },
     }
-    p.checks = {}
-    for i, o in ipairs(opts) do
-        local c = Check(p, o[1], o[2])
-        c:SetPoint("TOPLEFT", 0, -(i - 1) * 28)
-        p.checks[i] = c
+    p.rows = {}
+    local y = 0
+    for _, o in ipairs(opts) do
+        local get, set = dbkey(o[2])
+        local c = Check(p, o[1], get, function(v) set(v) if UI.ApplyHUD then UI.ApplyHUD() end end)
+        c:SetPoint("TOPLEFT", 0, y)
+        p.rows[#p.rows + 1] = c
+        y = y - 25
     end
-    local note = Label(p, "GameFontDisableSmall", "Double-click means two right-clicks on the world within about 0.4 seconds.\nThe game needs a real click for each cast, so there is no fully automatic casting.")
-    note:SetPoint("TOPLEFT", 0, -(#opts) * 28 - 10)
+    local mm = Check(p, "Show the minimap button", function() return F.db.minimap.show end,
+        function(v) F.db.minimap.show = v UI.UpdateMinimap() end)
+    mm:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = mm
+    y = y - 32
+
+    local speed = Cycle(p, "Double-click speed", {
+        { 0.25, "fast (0.25s)" }, { 0.4, "normal (0.4s)" }, { 0.6, "slow (0.6s)" }, { 0.8, "slower (0.8s)" } },
+        function() return F.db.clickWindow end, function(v) F.db.clickWindow = v end)
+    speed:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = speed y = y - 28
+    local mod = Cycle(p, "Hold a key while double-clicking", {
+        { "none", "no key" }, { "shift", "Shift" }, { "ctrl", "Ctrl" }, { "alt", "Alt" } },
+        function() return F.db.clickMod end, function(v) F.db.clickMod = v end)
+    mod:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = mod y = y - 28
+    local lure = Cycle(p, "Lure to use first", { { "best", "strongest" }, { "weakest", "weakest" } },
+        function() return F.db.lureChoice end, function(v) F.db.lureChoice = v end)
+    lure:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = lure y = y - 28
+    local back = Cycle(p, "Back to normal gear after", {
+        { 0, "never" }, { 5, "5 minutes" }, { 10, "10 minutes" }, { 20, "20 minutes" } },
+        function() return F.db.autoReturn end, function(v) F.db.autoReturn = v end)
+    back:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = back y = y - 34
+
+    local note = Label(p, "GameFontDisableSmall", "The game needs a real click for each cast, so casting is never fully automatic.\nBind a key under Options > Key Bindings > Fishie to cast without the mouse.")
+    note:SetPoint("TOPLEFT", 0, y)
     note:SetWidth(400)
     function p.Refresh()
-        for _, c in ipairs(p.checks) do c:SetChecked(F.db[c.key] and true or false) end
+        for _, r in ipairs(p.rows) do
+            if r.get then r:SetChecked(r.get() and true or false) elseif r.Refresh then r.Refresh() end
+        end
     end
 end
+
+---------------------------------------------------------------------------
+-- The on-screen fishing box: cast timer, lure time left and this session's catches
+---------------------------------------------------------------------------
+local hud
+local function BuildHUD()
+    if hud then return hud end
+    hud = CreateFrame("Frame", "FishieHUD", UIParent, "BackdropTemplate")
+    hud:SetSize(190, 74)
+    hud:SetPoint("CENTER", 0, -220)
+    hud:SetMovable(true)
+    hud:EnableMouse(true)
+    hud:RegisterForDrag("LeftButton")
+    hud:SetClampedToScreen(true)
+    if hud.SetBackdrop then
+        hud:SetBackdrop({ bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            edgeSize = 12, insets = { left = 3, right = 3, top = 3, bottom = 3 } })
+        hud:SetBackdropColor(0, 0, 0, 0.6)
+    end
+    hud.text = Label(hud, "GameFontHighlightSmall")
+    hud.text:SetPoint("TOPLEFT", 8, -8)
+    hud.text:SetWidth(176)
+    hud.text:SetSpacing(3)
+    hud:SetScript("OnDragStart", hud.StartMoving)
+    hud:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        local point, _, rel, x, y = self:GetPoint()
+        F.db.hudPos = { point = point, rel = rel, x = x, y = y }
+    end)
+    local acc = 0
+    hud:SetScript("OnUpdate", function(_, dt)
+        acc = acc + dt
+        if acc < 0.5 then return end
+        acc = 0
+        local s = F.Log.Session()
+        local cast = "-"
+        if F.castStart and F.IsFishingNow() then cast = F.Log.FormatTime(GetTime() - F.castStart) end
+        local left = F.Gear.LureTimeLeft()
+        local lure = left and (left > 9000 and "on" or F.Log.FormatTime(left)) or "|cff888888none|r"
+        hud.text:SetText(("|cff33ccffFishie|r\nSince cast: |cffffffff%s|r\nLure: |cffffffff%s|r\nCaught: |cffffffff%d|r  (%.0f/hr)"):format(
+            cast, lure, s.caught, F.Log.PerHour()))
+    end)
+    local p = F.db.hudPos
+    if p and p.point then
+        hud:ClearAllPoints()
+        hud:SetPoint(p.point, UIParent, p.rel or p.point, p.x or 0, p.y or 0)
+    end
+    return hud
+end
+
+function UI.ApplyHUD()
+    if not F.db then return end
+    if F.db.showHUD then BuildHUD():Show() elseif hud then hud:Hide() end
+end
+F.AddHook("loaded", function() F.On("PLAYER_LOGIN", UI.ApplyHUD) end)
 
 local function Show(key)
     current = key
@@ -167,7 +276,7 @@ end
 local function Build()
     if frame then return end
     frame = CreateFrame("Frame", "FishieFrame", UIParent, "BasicFrameTemplateWithInset")
-    frame:SetSize(440, 360)
+    frame:SetSize(440, 540)
     frame:SetPoint("CENTER", 200, 0)
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -267,6 +376,15 @@ local function MakeMinimap()
     end)
     btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
     Place()
+end
+
+function UI.UpdateMinimap()
+    if F.db.minimap.show then
+        MakeMinimap()
+        if btn then btn:Show() end
+    elseif btn then
+        btn:Hide()
+    end
 end
 
 F.AddHook("loaded", function() F.On("PLAYER_LOGIN", MakeMinimap) end)
