@@ -52,6 +52,11 @@ local function KeyDownMode()
     return GetCVar and GetCVar("ActionButtonUseKeyDown") == "1"
 end
 
+function C.Release()
+    armedAt = nil
+    F.AfterCombat(function() ClearOverrideBindings(btn) end)
+end
+
 -- Choose what the button does right now: put a lure on, or cast. Returns "lure" or "cast".
 function C.Prepare()
     if InCombatLockdown and InCombatLockdown() then return nil end
@@ -199,6 +204,11 @@ function F.IsFishingNow() return GetTime() < F.fishingUntil end
 -- removes the need to aim at the bobber. Needs the game's soft-target interact, switched on
 -- here while fishing.
 ---------------------------------------------------------------------------
+-- True only while the player really has a channel going (a fishing line out).
+local function Channeling()
+    if not UnitChannelInfo then return false end
+    return UnitChannelInfo("player") ~= nil
+end
 function C.CatchOn()
     if catching or not (F.db and F.db.autoCatch) then return end
     if InCombatLockdown and InCombatLockdown() then return end
@@ -210,6 +220,15 @@ function C.CatchOn()
     local ok = pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
     catching = ok
     F.Debug("auto-catch " .. (ok and "on: right-click loots the bobber" or "could not bind"))
+    if ok then
+        -- watchdog: never leave right-click bound once the line is in
+        local function Watch()
+            if not catching then return end
+            if not Channeling() then C.CatchOff() return end
+            C_Timer.After(0.5, Watch)
+        end
+        C_Timer.After(1, Watch)
+    end
 end
 -- Cursor on something in the world (the bobber's tooltip shows)? Then the game's own click
 -- already loots it, so our binding steps aside; otherwise it interacts with the soft target.
@@ -223,6 +242,11 @@ end
 function C.CatchRoute()
     if not catching then return end
     if InCombatLockdown and InCombatLockdown() then return end
+    if not Channeling() then
+        F.Debug("catch binding was left over: removing it")
+        C.CatchOff()
+        return
+    end
     if CursorOnObject() then
         ClearOverrideBindings(catchOwner)
         F.Debug("catch: cursor is on the bobber, normal click")
@@ -237,7 +261,10 @@ function C.CatchOff()
         savedSoft = nil
     end
     if not catching then return end
-    if InCombatLockdown and InCombatLockdown() then return end
+    if InCombatLockdown and InCombatLockdown() then
+        F.AfterCombat(function() C.CatchOff() end)
+        return
+    end
     ClearOverrideBindings(catchOwner)
     catching = false
     F.Debug("auto-catch off")
@@ -251,7 +278,7 @@ local function CastStarted(spellID)
         lineOut = true
         BoostLoot()
         Boost()
-        C.CatchOn()
+        if Channeling() then C.CatchOn() end
         F.Fire("cast")
         F.Debug("fishing cast started")
         return true

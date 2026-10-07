@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.2.4
+- Right-click is no longer held after fishing: the catch binding only lives while a line is actually out, a watchdog frees it within half a second of the line coming in, and it is released after combat if the stop happened mid-fight.
+- `/fishie release` gives right-click back to the game if it ever feels stuck.
+
 ## v0.2.3
 - Catch is more reliable: with the line out, a right-click on the bobber uses the game's normal click, and a right-click anywhere else interacts with your soft target. Before, the second case replaced the first, so the catch only worked when the bobber happened to be your soft target.
 - A click can no longer recast over a line that is waiting for a bite, and a cast started in combat can't leave right-click dead afterwards.

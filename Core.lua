@@ -154,6 +154,10 @@ SlashCmdList.FISHIE = function(input)
         local v = rest:lower()
         if v == "on" then F.db.debug = true elseif v == "off" then F.db.debug = false else F.db.debug = not F.db.debug end
         Print("Debug " .. (F.db.debug and "on: Fishie explains every click, cast and catch it sees." or "off"))
+    elseif cmd == "release" then
+        if F.Cast.CatchOff then F.Cast.CatchOff() end
+        if F.Cast.Release then F.Cast.Release() end
+        Print("Right-click released.")
     elseif cmd == "probe" then
         F.Gear.Probe()
     else
@@ -165,6 +169,7 @@ SlashCmdList.FISHIE = function(input)
         Print("/fishie doubleclick | lure | pole | sound | announce | refreshlure | warnlure | autocatch | autoloot | hud [on|off]")
         Print("/fishie minimap - show or hide the minimap button")
         Print("/fishie debug [on|off] - explain every click, cast and catch in chat")
+        Print("/fishie release - give right-click back to the game if it ever feels stuck")
         Print("/fishie probe - show what the game reports about your pole and lures")
     end
 end
