@@ -78,13 +78,15 @@ function C.OnWorldDown(button)
     if button ~= "RightButton" then return end
     if not (F.db and F.db.doubleClick) then return end
     local now = GetTime()
+    F.Debug(("world right-click down (%.2fs after the last one)"):format(now - lastUp))
     if now - lastUp <= (F.db.clickWindow or 0.4) and not armedAt then
-        C.Arm()
+        local what = C.Arm()
+        F.Debug("double-click: " .. tostring(what))
     end
 end
 
 function C.OnWorldUp(button)
-    if button == "RightButton" then lastUp = GetTime() end
+    if button == "RightButton" then lastUp = GetTime() F.Debug("world right-click up") end
 end
 
 if WorldFrame then
@@ -123,18 +125,41 @@ local function IsFishingChannel()
     if not UnitChannelInfo then return false end
     local name = UnitChannelInfo("player")
     if not name or F.IsSecret(name) then return false end
-    return name == C.SpellName()
+    return name == C.SpellName() or name == "Fishing"
 end
 
-F.On("UNIT_SPELLCAST_CHANNEL_START", function(_, unit)
-    if unit ~= "player" then return end
-    if IsFishingChannel() then
+local FISHING_SET = {}
+for _, id in ipairs(FISHING_IDS) do FISHING_SET[id] = true end
+
+-- True while a cast is out or just finished: loot in this window counts as fishing.
+F.fishingUntil = 0
+function F.IsFishingNow() return GetTime() < F.fishingUntil end
+
+local function CastStarted(spellID)
+    if IsFishingChannel() or (spellID and FISHING_SET[spellID]) then
+        F.fishingUntil = GetTime() + 30
         Boost()
         F.Fire("cast")
+        F.Debug("fishing cast started")
+        return true
+    end
+end
+
+F.On("UNIT_SPELLCAST_CHANNEL_START", function(_, unit, _, spellID)
+    if unit ~= "player" then return end
+    F.Debug("channel start " .. tostring(spellID))
+    CastStarted(spellID)
+end)
+F.On("UNIT_SPELLCAST_SUCCEEDED", function(_, unit, _, spellID)
+    if unit == "player" and spellID and FISHING_SET[spellID] and GetTime() > F.fishingUntil then
+        F.Debug("fishing cast succeeded " .. tostring(spellID))
+        CastStarted(spellID)
     end
 end)
 F.On("UNIT_SPELLCAST_CHANNEL_STOP", function(_, unit)
     if unit ~= "player" then return end
+    F.Debug("channel stop")
+    F.fishingUntil = math.max(F.fishingUntil, GetTime() + 15)   -- the catch arrives just after
     C_Timer.After(0.5, function() if not IsFishingChannel() then Restore() end end)
 end)
 F.On("PLAYER_LOGOUT", Restore)

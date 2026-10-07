@@ -15,6 +15,7 @@ F.DEFAULTS = {
     autoPole = true,          -- equip a pole (your fishing outfit) when you double-click without one
     boostSound = true,        -- turn up effects and turn down music/ambience while fishing
     announce = true,          -- one line in chat for each catch
+    debug = false,            -- /fishie debug: explain what Fishie sees in chat
     outfit = {},              -- [slot] = item link, the gear you want on while fishing
     normal = {},              -- [slot] = item link, what you had on before switching
     fishing = false,          -- true while the fishing outfit is on
@@ -37,6 +38,10 @@ end
 
 function F.Print(msg) print("|cff33ccffFishie:|r " .. tostring(msg)) end
 local Print = F.Print
+
+function F.Debug(msg)
+    if F.db and F.db.debug then print("|cff888888Fishie debug:|r " .. tostring(msg)) end
+end
 
 local reported = {}
 function F.ReportError(what, err)
@@ -126,6 +131,10 @@ SlashCmdList.FISHIE = function(input)
         if v == "on" then F.db[key] = true elseif v == "off" then F.db[key] = false else F.db[key] = not F.db[key] end
         Print(label .. ": " .. (F.db[key] and "on" or "off"))
         if F.UI then F.UI.Refresh() end
+    elseif cmd == "debug" then
+        local v = rest:lower()
+        if v == "on" then F.db.debug = true elseif v == "off" then F.db.debug = false else F.db.debug = not F.db.debug end
+        Print("Debug " .. (F.db.debug and "on: Fishie explains every click, cast and catch it sees." or "off"))
     elseif cmd == "probe" then
         F.Gear.Probe()
     else
@@ -135,6 +144,7 @@ SlashCmdList.FISHIE = function(input)
         Print("/fishie stats | reset - this session's catches")
         Print("/fishie applylure - put a lure on your pole now (use from a macro or button)")
         Print("/fishie doubleclick | lure | pole | sound | announce [on|off]")
+        Print("/fishie debug [on|off] - explain every click, cast and catch in chat")
         Print("/fishie probe - show what the game reports about your pole and lures")
     end
 end

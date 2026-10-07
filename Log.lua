@@ -79,9 +79,19 @@ function L.PrintSession()
     end
 end
 
--- Loot window opened by a fishing cast.
+-- Catches are seen two ways, so one failing doesn't lose them: the loot window of a fishing
+-- cast, and the "You receive loot" chat line while a fishing cast was recent.
+local recent = {}   -- [itemName] = time the loot window recorded it
+
+local function Announce(link, name, qty)
+    if F.db.announce then F.Print(("Caught %s%s."):format(link or name, (qty and qty > 1) and (" x" .. qty) or "")) end
+end
+
 local function OnLoot()
-    if not (IsFishingLoot and IsFishingLoot()) then return end
+    local isFishing = (IsFishingLoot and IsFishingLoot()) or (F.IsFishingNow and F.IsFishingNow())
+    F.Debug(("loot window opened; IsFishingLoot=%s recentCast=%s"):format(
+        tostring(IsFishingLoot and IsFishingLoot()), tostring(F.IsFishingNow and F.IsFishingNow())))
+    if not isFishing then return end
     local n = GetNumLootItems and GetNumLootItems() or 0
     for i = 1, n do
         local name, qty, quality
@@ -91,14 +101,48 @@ local function OnLoot()
         end
         local link = GetLootSlotLink and GetLootSlotLink(i)
         if name and not F.IsSecret(name) then
-            L.Record(name, link, tonumber(qty) or 1, quality)
-            if F.db.announce then F.Print(("Caught %s%s."):format(link or name, (qty and qty > 1) and (" x" .. qty) or "")) end
+            qty = tonumber(qty) or 1
+            L.Record(name, link, qty, quality)
+            recent[name] = GetTime()
+            Announce(link, name, qty)
         end
     end
     if F.UI then F.UI.Refresh() end
 end
 F.On("LOOT_OPENED", OnLoot)
 F.On("LOOT_CLOSED", function() if F.Cast then F.Cast.Restore() end end)
+
+local function Esc(s) return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")) end
+local SELF_PATTERNS
+local function SelfPatterns()
+    if SELF_PATTERNS then return SELF_PATTERNS end
+    SELF_PATTERNS = {}
+    for _, g in ipairs({ "LOOT_ITEM_SELF_MULTIPLE", "LOOT_ITEM_SELF", "LOOT_ITEM_PUSHED_SELF_MULTIPLE", "LOOT_ITEM_PUSHED_SELF" }) do
+        local s = _G[g]
+        if type(s) == "string" then
+            SELF_PATTERNS[#SELF_PATTERNS + 1] = "^" .. Esc(s):gsub("%%%%s", "(.+)"):gsub("%%%%d", "(%%d+)") .. "$"
+        end
+    end
+    if #SELF_PATTERNS == 0 then SELF_PATTERNS = { "^You receive loot: (.+)%.$", "^You receive item: (.+)%.$" } end
+    return SELF_PATTERNS
+end
+
+F.On("CHAT_MSG_LOOT", function(_, msg)
+    if not msg or F.IsSecret(msg) or not (F.IsFishingNow and F.IsFishingNow()) then return end
+    local link = msg:match("(|c%x+|Hitem:.-|h%[.-%]|h|r)") or msg:match("(|Hitem:.-|h%[.-%]|h)")
+    if not link then return end
+    local mine = false
+    for _, p in ipairs(SelfPatterns()) do if msg:match(p) then mine = true break end end
+    if not mine then return end
+    local name = link:match("%[(.-)%]")
+    local qty = tonumber(msg:match("x(%d+)")) or 1
+    F.Debug(("loot chat line for %s x%d"):format(tostring(name), qty))
+    if recent[name] and GetTime() - recent[name] < 5 then return end   -- the loot window already counted it
+    L.Record(name, link, qty)
+    recent[name] = GetTime()
+    Announce(link, name, qty)
+    if F.UI then F.UI.Refresh() end
+end)
 
 -- Zone totals, sorted: { { name, count, link } }
 function L.ZoneList(zone)
