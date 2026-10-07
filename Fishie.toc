@@ -1,0 +1,16 @@
+## Interface: 16001
+## Title: |cff33ccffFishie|r
+## Notes: Fishing helper: double-click to cast, automatic lures, a fishing outfit, catch tracking and session stats.
+## Author: David
+## Version: @project-version@
+## Category: Professions
+## IconTexture: Interface\Icons\Trade_Fishing
+## AddonCompartmentFunc: Fishie_OnAddonCompartmentClick
+## SavedVariables: FishieDB
+## X-License: MIT
+
+Core.lua
+Gear.lua
+Cast.lua
+Log.lua
+UI.lua
