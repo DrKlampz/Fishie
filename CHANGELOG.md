@@ -1,5 +1,10 @@
 # Fishie
 
+## v0.2.2
+- Cast is now a single right-click (with a pole in hand and no line out); catching the fish is also a right-click. "Cast with: double-click" in Setup brings the old behavior back.
+- Fishie's window, on-screen box and minimap button now sit on the HIGH frame strata so other windows don't cover them.
+- Setup tab explains how the two right-clicks work.
+
 ## v0.2.1
 - Auto catch: while your line is out, right-click loots the bobber wherever the cursor is (no aiming). Fishie turns on the game's soft-target interact for that and puts everything back when the line comes in. The game still needs your click; an addon can't press it for you. Turn off in Setup if you want normal right-click camera control while fishing.
 - Catch tracking has two more ways to see a catch: LOOT_READY, and a bag check after each cast if neither the loot window nor the chat line was readable. Nothing is counted twice.

@@ -2,8 +2,10 @@
 
 A fishing helper for **WoW: Forever**, in the spirit of Fishing Buddy.
 
-- **Double right-click to cast.** Right-click twice quickly on the world and Fishie casts Fishing. If you
-  have no pole in hand, the first double-click equips one.
+- **Right-click to cast, right-click to catch.** With a pole in hand, a single right-click on the world
+  casts Fishing. When the bobber splashes, right-click again and the fish is looted without aiming at the
+  bobber. Both are plain right-clicks; the game needs a real click for each. Prefer a double-click to cast?
+  Switch "Cast with" to double-click in Setup. With no pole in hand, a double-click equips one.
 - **Automatic lures.** When your pole has no lure, the double-click applies the best one in your bags
   (Aquadynamic Fish Attractor, Flesh Eating Worm, Bright Baubles, Nightcrawlers, Shiny Bauble ...).
   Click again to cast.

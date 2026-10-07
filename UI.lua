@@ -122,7 +122,7 @@ local function BuildSession(p)
             if i > 12 then lines[#lines + 1] = "..." break end
             lines[#lines + 1] = ("%s x%d"):format(s.items[nm].link or nm, s.items[nm].count)
         end
-        p.list:SetText(#lines > 0 and table.concat(lines, "\n") or "|cff888888Nothing caught yet. Double right-click to cast.|r")
+        p.list:SetText(#lines > 0 and table.concat(lines, "\n") or "|cff888888Nothing caught yet. Right-click to cast.|r")
         p.switch:SetText(F.db.fishing and "Normal gear" or "Fishing outfit")
     end
 end
@@ -161,7 +161,7 @@ end
 local function BuildSetup(p)
     local function dbkey(k) return function() return F.db[k] end, function(v) F.db[k] = v end end
     local opts = {
-        { "Double right-click to cast", "doubleClick" },
+        { "Right-click to cast (needs a pole in hand)", "doubleClick" },
         { "Put a lure on the pole when it has none", "autoLure" },
         { "Replace a lure that is about to run out", "refreshLure" },
         { "Warn when the lure is about to run out", "warnLure" },
@@ -186,6 +186,9 @@ local function BuildSetup(p)
     mm:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = mm
     y = y - 32
 
+    local clicks = Cycle(p, "Cast with", { { 1, "single click" }, { 2, "double-click" } },
+        function() return F.db.castClicks or 1 end, function(v) F.db.castClicks = v end)
+    clicks:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = clicks y = y - 28
     local speed = Cycle(p, "Double-click speed", {
         { 0.25, "fast (0.25s)" }, { 0.4, "normal (0.4s)" }, { 0.6, "slow (0.6s)" }, { 0.8, "slower (0.8s)" } },
         function() return F.db.clickWindow end, function(v) F.db.clickWindow = v end)
@@ -202,7 +205,7 @@ local function BuildSetup(p)
         function() return F.db.autoReturn end, function(v) F.db.autoReturn = v end)
     back:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = back y = y - 34
 
-    local note = Label(p, "GameFontDisableSmall", "The game needs a real click for each cast, so casting is never fully automatic.\nBind a key under Options > Key Bindings > Fishie to cast without the mouse.")
+    local note = Label(p, "GameFontDisableSmall", "How it works: right-click casts. Right-click again when the bobber splashes to catch the fish.\nBoth are plain right-clicks; the game needs a real click for each, so nothing is fully automatic.\nBind a key under Options > Key Bindings > Fishie to cast without the mouse.")
     note:SetPoint("TOPLEFT", 0, y)
     note:SetWidth(400)
     function p.Refresh()
@@ -219,6 +222,7 @@ local hud
 local function BuildHUD()
     if hud then return hud end
     hud = CreateFrame("Frame", "FishieHUD", UIParent, "BackdropTemplate")
+    hud:SetFrameStrata("HIGH")
     hud:SetSize(190, 74)
     hud:SetPoint("CENTER", 0, -220)
     hud:SetMovable(true)
@@ -277,6 +281,7 @@ end
 local function Build()
     if frame then return end
     frame = CreateFrame("Frame", "FishieFrame", UIParent, "BasicFrameTemplateWithInset")
+    frame:SetFrameStrata("HIGH")
     frame:SetSize(440, 540)
     frame:SetPoint("CENTER", 200, 0)
     frame:SetMovable(true)
@@ -347,7 +352,7 @@ local function MakeMinimap()
     if btn or not Minimap or not F.db.minimap.show then return end
     btn = CreateFrame("Button", "FishieMinimapButton", Minimap)
     btn:SetSize(31, 31)
-    btn:SetFrameStrata("MEDIUM")
+    btn:SetFrameStrata("HIGH")
     btn:SetFrameLevel((Minimap:GetFrameLevel() or 1) + 8)
     btn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     btn:RegisterForDrag("LeftButton")

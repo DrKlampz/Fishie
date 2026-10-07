@@ -1,4 +1,5 @@
--- Fishie casting: double right-click anywhere in the world to cast Fishing.
+-- Fishie casting: right-click in the world to cast Fishing (one click by default, or a double-click).
+-- With the line out, right-click loots the bobber instead (see auto-catch below).
 --
 -- How it works: a secure button casts the spell. The second right-click of a double-click
 -- temporarily binds the right mouse button to that secure button, so the click that is
@@ -97,6 +98,14 @@ function C.OnWorldDown(button)
     if not (F.db and F.db.doubleClick) then return end
     if not ModHeld() then F.Debug("modifier not held, ignoring click") return end
     local now = GetTime()
+    if (F.db.castClicks or 1) == 1 then
+        -- single click: cast with one right-click while a pole is in hand and no line is out
+        if (InCombatLockdown and InCombatLockdown()) or armedAt then return end
+        if C.IsChanneling and C.IsChanneling() then return end   -- line is out: this click catches
+        if not F.Gear.EquippedPole() then return end
+        F.Debug("single right-click: " .. tostring(C.Arm()))
+        return
+    end
     F.Debug(("world right-click down (%.2fs after the last one)"):format(now - lastUp))
     if now - lastUp <= (F.db.clickWindow or 0.4) and not armedAt then
         local what = C.Arm()
@@ -164,6 +173,7 @@ local function IsFishingChannel()
     return name == C.SpellName() or name == "Fishing"
 end
 
+C.IsChanneling = IsFishingChannel
 local FISHING_SET = {}
 for _, id in ipairs(FISHING_IDS) do FISHING_SET[id] = true end
 

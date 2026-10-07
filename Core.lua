@@ -10,6 +10,7 @@ F.Trim = Trim
 
 F.DEFAULTS = {
     doubleClick = true,       -- double right-click in the world casts Fishing
+    castClicks = 1,           -- 1 = single right-click casts (pole in hand), 2 = double right-click
     clickWindow = 0.4,        -- seconds allowed between the two clicks
     autoLure = true,          -- put a lure on the pole before casting when it has none
     autoPole = true,          -- equip a pole (your fishing outfit) when you double-click without one
@@ -109,9 +110,9 @@ end)
 -- Slash command
 ---------------------------------------------------------------------------
 local TOGGLES = {
-    doubleclick = { "doubleClick", "Double right-click to cast" },
+    doubleclick = { "doubleClick", "Right-click to cast" },
     lure = { "autoLure", "Automatic lures" },
-    pole = { "autoPole", "Equip a pole on double-click" },
+    pole = { "autoPole", "Equip a pole when you click without one" },
     sound = { "boostSound", "Fishing sound boost" },
     announce = { "announce", "Chat line for each catch" },
     refreshlure = { "refreshLure", "Replace a lure that is about to run out" },
