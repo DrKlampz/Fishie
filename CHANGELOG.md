@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.2.3
+- Catch is more reliable: with the line out, a right-click on the bobber uses the game's normal click, and a right-click anywhere else interacts with your soft target. Before, the second case replaced the first, so the catch only worked when the bobber happened to be your soft target.
+- A click can no longer recast over a line that is waiting for a bite, and a cast started in combat can't leave right-click dead afterwards.
+
 ## v0.2.2
 - Cast is now a single right-click (with a pole in hand and no line out); catching the fish is also a right-click. "Cast with: double-click" in Setup brings the old behavior back.
 - Fishie's window, on-screen box and minimap button now sit on the HIGH frame strata so other windows don't cover them.

@@ -34,13 +34,18 @@ btn:SetPoint("BOTTOMLEFT", -10, -10)
 btn:SetAttribute("type", "macro")
 btn:SetAttribute("macrotext", "/cast Fishing")
 
+local catchOwner = CreateFrame("Frame")
+local catching, savedSoft = false, nil   -- auto-catch state, used below
 local armedAt, clearTimer = nil, 0
 local lastUp = 0
 
 local function Disarm()
-    if InCombatLockdown and InCombatLockdown() then return end
+    armedAt = nil   -- always, even in combat, or later clicks would be ignored forever
+    if InCombatLockdown and InCombatLockdown() then
+        F.AfterCombat(function() ClearOverrideBindings(btn) end)
+        return
+    end
     ClearOverrideBindings(btn)
-    armedAt = nil
 end
 
 local function KeyDownMode()
@@ -95,6 +100,7 @@ end)
 -- The two clicks. WorldFrame only sees clicks that land on the 3D world, not on the UI.
 function C.OnWorldDown(button)
     if button ~= "RightButton" then return end
+    if catching and C.CatchRoute then C.CatchRoute() end
     if not (F.db and F.db.doubleClick) then return end
     if not ModHeld() then F.Debug("modifier not held, ignoring click") return end
     local now = GetTime()
@@ -173,7 +179,13 @@ local function IsFishingChannel()
     return name == C.SpellName() or name == "Fishing"
 end
 
-C.IsChanneling = IsFishingChannel
+-- The line counts as out from the cast until the channel stops, whatever the game calls the
+-- channel, so a click never recasts over a line that is waiting for a bite.
+local lineOut = false
+function C.IsChanneling()
+    if lineOut and F.castStart and GetTime() - F.castStart < 45 then return true end
+    return IsFishingChannel()
+end
 local FISHING_SET = {}
 for _, id in ipairs(FISHING_IDS) do FISHING_SET[id] = true end
 
@@ -187,8 +199,6 @@ function F.IsFishingNow() return GetTime() < F.fishingUntil end
 -- removes the need to aim at the bobber. Needs the game's soft-target interact, switched on
 -- here while fishing.
 ---------------------------------------------------------------------------
-local catchOwner = CreateFrame("Frame")
-local catching, savedSoft = false, nil
 function C.CatchOn()
     if catching or not (F.db and F.db.autoCatch) then return end
     if InCombatLockdown and InCombatLockdown() then return end
@@ -200,6 +210,26 @@ function C.CatchOn()
     local ok = pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
     catching = ok
     F.Debug("auto-catch " .. (ok and "on: right-click loots the bobber" or "could not bind"))
+end
+-- Cursor on something in the world (the bobber's tooltip shows)? Then the game's own click
+-- already loots it, so our binding steps aside; otherwise it interacts with the soft target.
+local function CursorOnObject()
+    if not (GameTooltip and GameTooltip.IsShown and GameTooltip:IsShown()) then return false end
+    local fs = _G.GameTooltipTextLeft1
+    local t = fs and fs.GetText and fs:GetText()
+    if not t or F.IsSecret(t) then return true end
+    return t ~= ""
+end
+function C.CatchRoute()
+    if not catching then return end
+    if InCombatLockdown and InCombatLockdown() then return end
+    if CursorOnObject() then
+        ClearOverrideBindings(catchOwner)
+        F.Debug("catch: cursor is on the bobber, normal click")
+    else
+        pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
+        F.Debug("catch: interact with soft target")
+    end
 end
 function C.CatchOff()
     if savedSoft then
@@ -218,6 +248,7 @@ local function CastStarted(spellID)
         F.fishingUntil = GetTime() + 30
         F.lastFish = GetTime()
         F.castStart = GetTime()
+        lineOut = true
         BoostLoot()
         Boost()
         C.CatchOn()
@@ -241,6 +272,7 @@ end)
 F.On("UNIT_SPELLCAST_CHANNEL_STOP", function(_, unit)
     if unit ~= "player" then return end
     F.Debug("channel stop")
+    lineOut = false
     F.fishingUntil = math.max(F.fishingUntil, GetTime() + 15)   -- the catch arrives just after
     C.CatchOff()
     C_Timer.After(0.5, function() if not IsFishingChannel() then Restore() end end)
