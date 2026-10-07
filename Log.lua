@@ -23,6 +23,7 @@ local function Now() return GetTime() end
 -- Record one looted item (name, link, count, quality).
 function L.Record(name, link, count, quality)
     count = count or 1
+    L.recordedSinceCast = (L.recordedSinceCast or 0) + count
     session.start = session.start or Now()
     session.caught = session.caught + count
     local s = session.items[name]
@@ -43,7 +44,50 @@ function L.Record(name, link, count, quality)
     F.db.total = (F.db.total or 0) + count
 end
 
+-- Bag snapshot: the last-resort way to see a catch, if neither the loot window nor the chat
+-- line was readable. Taken when a cast starts, compared shortly after it ends.
+local function BagCounts()
+    local out = {}
+    if not (C_Container and C_Container.GetContainerItemInfo) then return nil end
+    local nb = (C_Container.GetContainerNumSlots and 4) or 4
+    for bag = 0, nb do
+        local slots = C_Container.GetContainerNumSlots and C_Container.GetContainerNumSlots(bag) or 0
+        for slot = 1, slots do
+            local info = C_Container.GetContainerItemInfo(bag, slot)
+            if info and info.hyperlink and not F.IsSecret(info.hyperlink) then
+                local nm = info.hyperlink:match("%[(.-)%]")
+                if nm then
+                    local e = out[nm]
+                    if not e then e = { n = 0, link = info.hyperlink, quality = info.quality } out[nm] = e end
+                    e.n = e.n + (info.stackCount or 1)
+                end
+            end
+        end
+    end
+    return out
+end
+
+local bagsBefore
+function L.CheckBags()
+    local before = bagsBefore
+    bagsBefore = nil
+    if not before or (L.recordedSinceCast or 0) > 0 then return end
+    local after = BagCounts()
+    if not after then return end
+    for nm, e in pairs(after) do
+        local gained = e.n - (before[nm] and before[nm].n or 0)
+        if gained > 0 and gained <= 20 then
+            F.Debug(("bag check: +%d %s"):format(gained, nm))
+            L.Record(nm, e.link, gained, e.quality)
+            if F.db.announce then F.Print(("Caught %s%s."):format(e.link or nm, gained > 1 and (" x" .. gained) or "")) end
+        end
+    end
+    if F.UI then F.UI.Refresh() end
+end
+
 function L.OnCast()
+    L.recordedSinceCast = 0
+    bagsBefore = BagCounts()
     session.start = session.start or Now()
     session.casts = session.casts + 1
 end
@@ -87,11 +131,14 @@ local function Announce(link, name, qty)
     if F.db.announce then F.Print(("Caught %s%s."):format(link or name, (qty and qty > 1) and (" x" .. qty) or "")) end
 end
 
-local function OnLoot()
+local lootSeen = 0
+local function OnLoot(event)
+    if event == "LOOT_OPENED" and GetTime() - lootSeen < 0.5 then return end   -- LOOT_READY already counted this window
     local isFishing = (IsFishingLoot and IsFishingLoot()) or (F.IsFishingNow and F.IsFishingNow())
     F.Debug(("loot window opened; IsFishingLoot=%s recentCast=%s"):format(
         tostring(IsFishingLoot and IsFishingLoot()), tostring(F.IsFishingNow and F.IsFishingNow())))
     if not isFishing then return end
+    lootSeen = (event == "LOOT_READY") and GetTime() or 0
     local n = GetNumLootItems and GetNumLootItems() or 0
     for i = 1, n do
         local name, qty, quality
@@ -109,8 +156,16 @@ local function OnLoot()
     end
     if F.UI then F.UI.Refresh() end
 end
+F.On("LOOT_READY", OnLoot)
 F.On("LOOT_OPENED", OnLoot)
-F.On("LOOT_CLOSED", function() if F.Cast then F.Cast.Restore() end end)
+F.On("LOOT_CLOSED", function()
+    if F.Cast then F.Cast.Restore() end
+    C_Timer.After(1.5, L.CheckBags)
+end)
+-- No loot window at all (auto-loot took it instantly): look at the bags once the line is in.
+F.On("UNIT_SPELLCAST_CHANNEL_STOP", function(_, unit)
+    if unit == "player" and F.IsFishingNow() then C_Timer.After(2.5, L.CheckBags) end
+end)
 
 local function Esc(s) return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")) end
 local SELF_PATTERNS

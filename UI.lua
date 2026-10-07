@@ -166,6 +166,7 @@ local function BuildSetup(p)
         { "Replace a lure that is about to run out", "refreshLure" },
         { "Warn when the lure is about to run out", "warnLure" },
         { "Equip a pole when you double-click without one", "autoPole" },
+        { "Right-click loots the bobber (no aiming)", "autoCatch" },
         { "Auto-loot while fishing", "autoLoot" },
         { "Turn up effects, turn down music while fishing", "boostSound" },
         { "Chat line for each catch", "announce" },

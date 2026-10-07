@@ -149,6 +149,7 @@ local function RestoreLoot()
 end
 
 local function Restore()
+    if C.CatchOff then C.CatchOff() end
     RestoreLoot()
     if not saved then return end
     for k, v in pairs(saved) do SetVol(k, v) end
@@ -170,6 +171,38 @@ for _, id in ipairs(FISHING_IDS) do FISHING_SET[id] = true end
 F.fishingUntil = 0
 function F.IsFishingNow() return GetTime() < F.fishingUntil end
 
+---------------------------------------------------------------------------
+-- Auto-catch: while the line is out, right-click interacts with the bobber wherever the
+-- cursor is. The game still needs your click (an addon can't press it for you); this just
+-- removes the need to aim at the bobber. Needs the game's soft-target interact, switched on
+-- here while fishing.
+---------------------------------------------------------------------------
+local catchOwner = CreateFrame("Frame")
+local catching, savedSoft = false, nil
+function C.CatchOn()
+    if catching or not (F.db and F.db.autoCatch) then return end
+    if InCombatLockdown and InCombatLockdown() then return end
+    if GetCVar and savedSoft == nil then
+        savedSoft = { SoftTargetInteract = GetCVar("SoftTargetInteract"), softTargetInteract = GetCVar("softTargetInteract") }
+        SetVol("SoftTargetInteract", 3)
+        SetVol("softTargetInteract", 3)
+    end
+    local ok = pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
+    catching = ok
+    F.Debug("auto-catch " .. (ok and "on: right-click loots the bobber" or "could not bind"))
+end
+function C.CatchOff()
+    if savedSoft then
+        for k, v in pairs(savedSoft) do if v ~= nil then SetVol(k, v) end end
+        savedSoft = nil
+    end
+    if not catching then return end
+    if InCombatLockdown and InCombatLockdown() then return end
+    ClearOverrideBindings(catchOwner)
+    catching = false
+    F.Debug("auto-catch off")
+end
+
 local function CastStarted(spellID)
     if IsFishingChannel() or (spellID and FISHING_SET[spellID]) then
         F.fishingUntil = GetTime() + 30
@@ -177,6 +210,7 @@ local function CastStarted(spellID)
         F.castStart = GetTime()
         BoostLoot()
         Boost()
+        C.CatchOn()
         F.Fire("cast")
         F.Debug("fishing cast started")
         return true
@@ -198,6 +232,7 @@ F.On("UNIT_SPELLCAST_CHANNEL_STOP", function(_, unit)
     if unit ~= "player" then return end
     F.Debug("channel stop")
     F.fishingUntil = math.max(F.fishingUntil, GetTime() + 15)   -- the catch arrives just after
+    C.CatchOff()
     C_Timer.After(0.5, function() if not IsFishingChannel() then Restore() end end)
 end)
 F.On("PLAYER_LOGOUT", Restore)
