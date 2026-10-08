@@ -8,6 +8,7 @@
 ## AddonCompartmentFunc: Fishie_OnAddonCompartmentClick
 ## SavedVariables: FishieDB
 ## X-License: MIT
+## X-Wago-ID: jK8WYX6y
 
 Core.lua
 Gear.lua
