@@ -1,0 +1,1 @@
+A fishing addon modeled on retail Fishing Buddy, for WoW Forever.
