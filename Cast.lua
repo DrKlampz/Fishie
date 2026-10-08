@@ -196,6 +196,7 @@ for _, id in ipairs(FISHING_IDS) do FISHING_SET[id] = true end
 
 -- True while a cast is out or just finished: loot in this window counts as fishing.
 F.fishingUntil = 0
+F.lastFished = -1000          -- last time the fishing channel was seen, for "are we fishing today"
 function F.IsFishingNow() return GetTime() < F.fishingUntil end
 
 ---------------------------------------------------------------------------
@@ -272,6 +273,7 @@ end
 
 local function CastStarted(spellID)
     if IsFishingChannel() or (spellID and FISHING_SET[spellID]) then
+        F.lastFished = GetTime()
         F.fishingUntil = GetTime() + 30
         F.lastFish = GetTime()
         F.castStart = GetTime()

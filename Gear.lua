@@ -241,6 +241,14 @@ end
 function G.EnsurePole()
     if G.EquippedPole() then return true end
     if not (F.db and F.db.autoPole) then return false end
+    -- A double right-click happens all the time (turning the camera, looting, leaving combat).
+    -- Only reach for the pole when you're in a fishing session: the fishing outfit is on, you
+    -- fished in the last 10 minutes, or you've set a modifier key that you're holding.
+    local session = F.db.fishing or (GetTime() - (F.lastFished or -1000) < 600) or (F.db.clickMod or "none") ~= "none"
+    if not session then
+        F.Debug("not equipping a pole: no fishing session (use /fishie, the key binding, or the HUD to start one)")
+        return false
+    end
     local main = GetInventoryItemLink("player", MAINHAND)
     if main then F.db.normalWeapon = main end
     local pole, pbag, pslot = G.BagPole()

@@ -1,5 +1,8 @@
 # Fishie
 
+## v0.2.5
+- Fix: Fishie no longer puts your pole on by itself after combat (or any time you aren't fishing). A double right-click happens constantly while playing, and with "Equip a pole when you click without one" on, that was enough. The auto-equip now only happens in a fishing session: the fishing outfit is on, you fished within the last 10 minutes, or you've set a modifier key and are holding it. Start a session with `/fishie`, the key binding, or the HUD button.
+
 ## v0.2.4
 - Right-click is no longer held after fishing: the catch binding only lives while a line is actually out, a watchdog frees it within half a second of the line coming in, and it is released after combat if the stop happened mid-fight.
 - `/fishie release` gives right-click back to the game if it ever feels stuck.
