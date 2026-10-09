@@ -282,6 +282,7 @@ local function Build()
     if frame then return end
     frame = CreateFrame("Frame", "FishieFrame", UIParent, "BasicFrameTemplateWithInset")
     frame:SetFrameStrata("HIGH")
+    frame:SetToplevel(true)
     frame:SetSize(440, 540)
     frame:SetPoint("CENTER", 200, 0)
     frame:SetMovable(true)
