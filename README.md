@@ -34,5 +34,4 @@ The game needs a real click for every cast, so casting is never fully automatic.
 
 ## Notes
 
-Fishie has only been tested against a simulated game so far. If something doesn't work, run `/fishie probe`
-and report what it says.
+If something doesn't work, run `/fishie probe` and `/fishie debug on`, and report what they say.
