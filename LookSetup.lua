@@ -1,9 +1,8 @@
 local ADDON_NAME, F = ...
--- Window customization (see Look.lua). Opens with /fishielook.
+-- Window customization (see Look.lua). Opens from the minimap button (Alt-click).
 if not F.WinLook then return end
 F.WinLook.Setup({
     title = "Fishie",
-    slash = "fishielook",
     media = "Interface\\AddOns\\Fishie\\Media\\",
     db = function() return FishieDB end,
     windows = {
