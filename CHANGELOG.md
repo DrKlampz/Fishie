@@ -1,7 +1,7 @@
 # Fishie
 
 ## Unreleased
-- New: window customization. Alt-click the minimap button to restyle each window separately (or all together): background textures, colors with copy/paste, opacity sliders, border styles, fonts, scale and position lock. Off until you tick "Use a custom look"; unticking restores the original.
+- New: window customization. Alt-click the minimap button to restyle each window separately (or all together): background textures, colors with copy/paste, opacity sliders, border styles, fonts, scale and position lock. Over 50 fonts to pick from (install the LookFonts folder for the bundled ones; SharedMedia fonts show up too). Off until you tick "Use a custom look"; unticking restores the original.
 
 ## v0.2.10
 - Windows no longer bleed through each other: clicking the Fishie window raises it above other addon windows.
