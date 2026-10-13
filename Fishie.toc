@@ -17,4 +17,3 @@ Gear.lua
 Cast.lua
 Log.lua
 UI.lua
-Bindings.xml
