@@ -1,5 +1,8 @@
 # Fishie
 
+## v0.3.4
+- Log and error reporting improvements; /issues log.
+
 ## v0.3.3
 - Shared look: background color picker, 13 new backgrounds with brightness and grain, a gold trim option, and buttons and slots stay visible on a pure black panel.
 

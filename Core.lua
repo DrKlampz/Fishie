@@ -55,6 +55,7 @@ end
 
 local reported = {}
 function F.ReportError(what, err)
+    if F.Issue then F.Issue("lua", what, err) end
     if reported[what] then return end
     reported[what] = true
     Print(("|cffff5555Something went wrong in %s:|r %s"):format(what, tostring(err)))

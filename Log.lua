@@ -132,12 +132,23 @@ local function Announce(link, name, qty)
 end
 
 local lootSeen = 0
+-- loot from a corpse, a bag or a chest is never a catch, whatever the fishing timer says
+local function LootFromThings()
+    if not GetLootSourceInfo then return false end
+    local ok, guid = pcall(GetLootSourceInfo, 1)
+    if not ok or type(guid) ~= "string" or F.IsSecret(guid) then return false end
+    return guid:find("^Creature") or guid:find("^Vehicle") or guid:find("^Pet") or guid:find("^Item") or guid:find("^Player") and true or false
+end
+
 local function OnLoot(event)
     if event == "LOOT_OPENED" and GetTime() - lootSeen < 0.5 then return end   -- LOOT_READY already counted this window
     local isFishing = (IsFishingLoot and IsFishingLoot()) or (F.IsFishingNow and F.IsFishingNow())
     F.Debug(("loot window opened; IsFishingLoot=%s recentCast=%s"):format(
         tostring(IsFishingLoot and IsFishingLoot()), tostring(F.IsFishingNow and F.IsFishingNow())))
-    if not isFishing then return end
+    if isFishing and not (IsFishingLoot and IsFishingLoot()) and LootFromThings() then isFishing = false end
+    L.lastLootAt = GetTime()
+    L.lastLootIsFishing = isFishing and true or false
+    if not isFishing then bagsBefore = nil return end
     lootSeen = (event == "LOOT_READY") and GetTime() or 0
     local n = GetNumLootItems and GetNumLootItems() or 0
     for i = 1, n do
@@ -160,6 +171,7 @@ F.On("LOOT_READY", OnLoot)
 F.On("LOOT_OPENED", OnLoot)
 F.On("LOOT_CLOSED", function()
     if F.Cast then F.Cast.Restore() end
+    if L.lastLootIsFishing == false and L.lastLootAt and GetTime() - L.lastLootAt < 10 then bagsBefore = nil return end   -- that was not a catch
     C_Timer.After(1.5, L.CheckBags)
 end)
 -- No loot window at all (auto-loot took it instantly): look at the bags once the line is in.
@@ -184,6 +196,7 @@ end
 
 F.On("CHAT_MSG_LOOT", function(_, msg)
     if not msg or F.IsSecret(msg) or not (F.IsFishingNow and F.IsFishingNow()) then return end
+    if L.lastLootIsFishing == false and L.lastLootAt and GetTime() - L.lastLootAt < 5 then return end   -- a corpse or chest, not the bobber
     local link = msg:match("(|c%x+|Hitem:.-|h%[.-%]|h|r)") or msg:match("(|Hitem:.-|h%[.-%]|h)")
     if not link then return end
     local mine = false
