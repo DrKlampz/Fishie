@@ -39,10 +39,12 @@ end
 local function BagLinks()
     local out = {}
     local n = (NUM_BAG_SLOTS or 4)
+    local numSlots = (C_Container and C_Container.GetContainerNumSlots) or _G.GetContainerNumSlots
+    local itemLink = (C_Container and C_Container.GetContainerItemLink) or _G.GetContainerItemLink
+    if not numSlots or not itemLink then return out end
     for bag = 0, n do
-        local slots = C_Container and C_Container.GetContainerNumSlots(bag) or GetContainerNumSlots(bag)
-        for slot = 1, (slots or 0) do
-            local link = C_Container and C_Container.GetContainerItemLink(bag, slot) or GetContainerItemLink(bag, slot)
+        for slot = 1, (numSlots(bag) or 0) do
+            local link = itemLink(bag, slot)
             if link then out[#out + 1] = link end
         end
     end
@@ -83,10 +85,12 @@ end
 -- bag, slot, link of a pole in your bags
 function G.BagPole()
     local n = (NUM_BAG_SLOTS or 4)
+    local numSlots = (C_Container and C_Container.GetContainerNumSlots) or _G.GetContainerNumSlots
+    local itemLink = (C_Container and C_Container.GetContainerItemLink) or _G.GetContainerItemLink
+    if not numSlots or not itemLink then return end
     for bag = 0, n do
-        local slots = C_Container and C_Container.GetContainerNumSlots(bag) or GetContainerNumSlots(bag)
-        for slot = 1, (slots or 0) do
-            local link = C_Container and C_Container.GetContainerItemLink(bag, slot) or GetContainerItemLink(bag, slot)
+        for slot = 1, (numSlots(bag) or 0) do
+            local link = itemLink(bag, slot)
             if link and G.IsPole(link) then return link, bag, slot end
         end
     end

@@ -1,6 +1,7 @@
 # Fishie
 
-## Unreleased
+## v0.3.5
+- Fix: a crash ("attempt to call a nil value" in Gear.lua) when the game had an empty bag slot.
 - Fonts: the font pack now ships inside this add-on (Fonts folder), so the separate Look Fonts add-on is no longer needed, and there are about 60 more fonts to pick from under Look > Font.
 
 ## v0.3.4
