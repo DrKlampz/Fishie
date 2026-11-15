@@ -86,6 +86,7 @@ function L.CheckBags()
 end
 
 function L.OnCast()
+    L.catchCounted = false
     L.recordedSinceCast = 0
     bagsBefore = BagCounts()
     session.start = session.start or Now()
@@ -150,6 +151,12 @@ local function OnLoot(event)
     L.lastLootIsFishing = isFishing and true or false
     if not isFishing then bagsBefore = nil return end
     lootSeen = (event == "LOOT_READY") and GetTime() or 0
+    -- the game can send the "loot is ready" event more than once for one catch (auto-loot does):
+    -- one cast is one catch, so only the first loot window after a cast counts
+    if L.catchCounted and GetTime() - (L.catchCountedAt or 0) < 15 then
+        F.Debug("loot event again for the same cast: not counted twice")
+        return
+    end
     local n = GetNumLootItems and GetNumLootItems() or 0
     for i = 1, n do
         local name, qty, quality
@@ -163,6 +170,7 @@ local function OnLoot(event)
             L.Record(name, link, qty, quality)
             recent[name] = GetTime()
             Announce(link, name, qty)
+            L.catchCounted, L.catchCountedAt = true, GetTime()
         end
     end
     if F.UI then F.UI.Refresh() end
