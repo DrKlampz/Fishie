@@ -388,6 +388,13 @@ local function MakeMinimap()
     btn:SetScript("OnDragStop", function(self) self:SetScript("OnUpdate", nil) end)
     btn:SetScript("OnClick", function(_, b)
         GameTooltip:Hide()
+        if IsShiftKeyDown and IsShiftKeyDown() then
+            F.db.showCounter = not F.db.showCounter
+            if F.Counter then F.Counter.Apply() end
+            F.Print("Catch counter " .. (F.db.showCounter and "shown." or "hidden."))
+            if UI.Refresh then UI.Refresh() end
+            return
+        end
         if IsAltKeyDown() and F.WinLook then F.WinLook.Toggle() return end
         if b == "RightButton" then F.Gear.Switch() else UI.Toggle() end
     end)
@@ -397,6 +404,7 @@ local function MakeMinimap()
         GameTooltip:AddLine("Left-click: window", 0.9, 0.9, 0.9)
         GameTooltip:AddLine("Right-click: fishing outfit on/off", 0.9, 0.9, 0.9)
         GameTooltip:AddLine("Alt-click: window looks", 0.9, 0.9, 0.9)
+        GameTooltip:AddLine("Shift-click: catch counter on/off", 0.9, 0.9, 0.9)
         GameTooltip:AddLine("Drag: move this button", 0.6, 0.6, 0.6)
         GameTooltip:Show()
     end)
