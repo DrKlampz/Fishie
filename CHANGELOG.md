@@ -1,5 +1,8 @@
 # Fishie
 
+## v0.4.10
+- Removed the bite sound. It played when the line was cast, not when a fish bit, because the game gives add-ons no way to tell. It may come back if a reliable signal turns up.
+
 ## v0.4.9
 - New: the catch counter can show only while a fishing pole is equipped (on by default). Turn it off in Setup or the Look window to show it all the time.
 

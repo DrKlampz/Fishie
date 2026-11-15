@@ -173,7 +173,6 @@ local function BuildSetup(p)
         { "Show the on-screen fishing box", "showHUD" },
         { "Show the catch counter", "showCounter" },
         { "Catch counter: only with a fishing pole equipped", "counterPoleOnly" },
-        { "Play a sound when a fish bites", "biteSound" },
     }
     p.rows = {}
     local y = 0

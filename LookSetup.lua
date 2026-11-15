@@ -27,18 +27,13 @@ local function Options()
             L.Choice("Lure to use first", db, "lureChoice", { { "best", "Strongest" }, { "weakest", "Weakest" } }),
             L.Choice("Back to normal gear after", db, "autoReturn", { { 0, "Never" }, { 5, "5 minutes" }, { 10, "10 minutes" }, { 20, "20 minutes" } }),
         } },
-        { id = "counter", title = "Catch counter and bite sound", open = true, rows = {
+        { id = "counter", title = "Catch counter", open = true, rows = {
             L.Koff("Show the catch counter", db, "showCounter", counter),
             L.Koff("Counter: only with a fishing pole equipped", db, "counterPoleOnly", counter),
             L.Koff("Counter: show the all-time total", db, "counterTotal", counter),
             L.Koff("Counter: show catches per hour", db, "counterRate", counter),
             L.Koff("Counter: lock its position", db, "counterLock"),
             L.Note("Hover the counter for this session's catches; right-click it to reset the session."),
-            L.Koff("Play a sound when a fish bites", db, "biteSound"),
-            L.Choice("Bite sound", db, "biteSoundKind", { { "ready", "Ready check" }, { "raid", "Raid warning" }, { "alarm", "Alarm clock" }, { "quest", "Quest complete" } }, function() if F.Counter then F.Counter.PlayBite() end end),
-            L.Choice("Play it on", db, "biteSoundChannel", { { "Master", "Master (always heard)" }, { "SFX", "Effects" }, { "Dialog", "Dialog" } }),
-            L.Koff("Also show Fish on! at the top of the screen", db, "biteFlash"),
-            L.Note("The game has no bite event, so Fishie reacts when the bobber becomes clickable. Turn on /fishie debug to see what it notices."),
         } },
         { id = "extras", title = "Sound, chat and display", rows = {
             L.Koff("Turn up effects, turn down music while fishing", db, "boostSound"),

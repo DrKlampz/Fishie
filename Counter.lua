@@ -1,4 +1,4 @@
--- Fishie catch counter (a small box that stays up) and the bite sound.
+-- Fishie catch counter: a small box that stays on screen.
 local ADDON_NAME, F = ...
 local K = {}
 F.Counter = K
@@ -89,46 +89,3 @@ do
     F.Log.Record = function(...) rec(...) K.Refresh() end
     F.Log.ResetSession = function(...) reset(...) K.Refresh() end
 end
-
----------------------------------------------------------------------------
--- Bite sound. The game gives add-ons no "fish bit" event, so this listens for the moment the
--- bobber becomes something you can interact with, which is when a fish is on. Best effort:
--- turn on /fishie debug to see exactly what Fishie notices.
----------------------------------------------------------------------------
-K.SOUNDS = {
-    { "ready", "Ready check", { "READY_CHECK", 8960 } },
-    { "raid", "Raid warning", { "RAID_WARNING", 8959 } },
-    { "alarm", "Alarm clock", { "ALARM_CLOCK_WARNING_3", 12889 } },
-    { "quest", "Quest complete", { "IG_QUEST_LIST_COMPLETE", 878 } },
-}
-function K.PlayBite()
-    local choice = F.db and F.db.biteSoundKind or "ready"
-    for _, s in ipairs(K.SOUNDS) do
-        if s[1] == choice then
-            local id = (_G.SOUNDKIT and _G.SOUNDKIT[s[3][1]]) or s[3][2]
-            local ch = F.db.biteSoundChannel or "Master"
-            if PlaySound then pcall(PlaySound, id, ch) end
-            return
-        end
-    end
-end
-
-local belled = false
-F.AddHook("cast", function() belled = false end)
-F.On("UNIT_SPELLCAST_CHANNEL_STOP", function(_, unit) if unit == "player" then belled = true end end)
-
-local function Bite(why)
-    if belled or not (F.db and F.db.biteSound) or not (F.IsFishingNow and F.IsFishingNow()) then return end
-    belled = true
-    F.Debug("bite: " .. why)
-    K.PlayBite()
-    if F.db.biteFlash and UIErrorsFrame and UIErrorsFrame.AddMessage then
-        UIErrorsFrame:AddMessage("Fish on!", 0.2, 0.8, 1)
-    end
-end
-
-F.On("PLAYER_SOFT_INTERACT_CHANGED", function(_, _, newGuid)
-    if not newGuid or F.IsSecret(newGuid) or type(newGuid) ~= "string" then return end
-    F.Debug("soft interact target: " .. newGuid)
-    if newGuid:find("^GameObject") then Bite("bobber is interactable") end
-end)
