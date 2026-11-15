@@ -25,6 +25,15 @@ F.DEFAULTS = {
     autoLoot = true,          -- turn on auto-loot while fishing, then put it back
     autoReturn = 0,           -- minutes without fishing before the normal outfit comes back (0 = never)
     showHUD = false,          -- small on-screen box with the cast timer, lure and catches
+    showCounter = true,       -- small always-on box with the number of fish caught
+    counterTotal = true,      -- counter: also show the all-time total
+    counterRate = true,       -- counter: also show catches per hour
+    counterLock = false,      -- counter: stop it being dragged
+    counterPos = {},          -- where you dragged the counter
+    biteSound = true,         -- play a sound when a fish bites (best effort)
+    biteSoundKind = "ready",  -- which sound
+    biteSoundChannel = "Master",
+    biteFlash = true,         -- "Fish on!" at the top of the screen as well
     hudPos = {},              -- where you dragged the HUD
     outfit = {},              -- [slot] = item link, the gear you want on while fishing
     normal = {},              -- [slot] = item link, what you had on before switching
@@ -121,6 +130,8 @@ local TOGGLES = {
     autocatch = { "autoCatch", "Right-click loots the bobber while fishing" },
     autoloot = { "autoLoot", "Auto-loot while fishing" },
     hud = { "showHUD", "On-screen fishing box" },
+    counter = { "showCounter", "Catch counter" },
+    bite = { "biteSound", "Bite sound" },
 }
 
 SLASH_FISHIE1 = "/fishie"
@@ -167,7 +178,7 @@ SlashCmdList.FISHIE = function(input)
         Print("/fishie save - remember what you're wearing as your fishing outfit")
         Print("/fishie stats | reset - this session's catches")
         Print("/fishie applylure - put a lure on your pole now (use from a macro or button)")
-        Print("/fishie doubleclick | lure | pole | sound | announce | refreshlure | warnlure | autocatch | autoloot | hud [on|off]")
+        Print("/fishie doubleclick | lure | pole | sound | announce | refreshlure | warnlure | autocatch | autoloot | hud | counter | bite [on|off]")
         Print("/fishie minimap - show or hide the minimap button")
         Print("/fishie debug [on|off] - explain every click, cast and catch in chat")
         Print("/fishie release - give right-click back to the game if it ever feels stuck")

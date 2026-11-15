@@ -1,5 +1,10 @@
 # Fishie
 
+## v0.4.0
+- New: a catch counter, a small box that stays on screen with this session's catches, catches per hour and your all-time total. Hover it for what you caught this session, right-click to reset. Drag it anywhere, lock it, and restyle it from the Look window.
+- New: a bite sound (and "Fish on!" at the top of the screen) when a fish bites. The game gives add-ons no bite event, so this reacts when the bobber becomes clickable. Pick the sound and the volume channel in the Look window. If it stays quiet for you, turn on /fishie debug and tell me what it prints.
+- /fishie counter and /fishie bite turn them on and off.
+
 ## v0.3.5
 - Fix: a crash ("attempt to call a nil value" in Gear.lua) when the game had an empty bag slot.
 - Fonts: the font pack now ships inside this add-on (Fonts folder), so the separate Look Fonts add-on is no longer needed, and there are about 60 more fonts to pick from under Look > Font.

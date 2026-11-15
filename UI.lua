@@ -171,12 +171,14 @@ local function BuildSetup(p)
         { "Turn up effects, turn down music while fishing", "boostSound" },
         { "Chat line for each catch", "announce" },
         { "Show the on-screen fishing box", "showHUD" },
+        { "Show the catch counter", "showCounter" },
+        { "Play a sound when a fish bites", "biteSound" },
     }
     p.rows = {}
     local y = 0
     for _, o in ipairs(opts) do
         local get, set = dbkey(o[2])
-        local c = Check(p, o[1], get, function(v) set(v) if UI.ApplyHUD then UI.ApplyHUD() end end)
+        local c = Check(p, o[1], get, function(v) set(v) if UI.ApplyHUD then UI.ApplyHUD() end if F.Counter then F.Counter.Apply() end end)
         c:SetPoint("TOPLEFT", 0, y)
         p.rows[#p.rows + 1] = c
         y = y - 25
@@ -284,7 +286,7 @@ local function Build()
     frame = CreateFrame("Frame", "FishieFrame", UIParent, "BasicFrameTemplateWithInset")
     frame:SetFrameStrata("HIGH")
     frame:SetToplevel(true)
-    frame:SetSize(440, 540)
+    frame:SetSize(440, 590)
     if F.WinLook then F.WinLook.Attach("main", frame) end
     frame:SetPoint("CENTER", 200, 0)
     frame:SetMovable(true)

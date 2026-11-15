@@ -5,6 +5,7 @@ local function Options()
     local L = F.WinLook
     local db = function() return F.db end
     local function hud() if F.UI and F.UI.ApplyHUD then F.UI.ApplyHUD() end end
+    local function counter() if F.Counter then F.Counter.Apply() F.Counter.Refresh() end end
     local mmdb = function() return F.db.minimap end
     return { sections = {
         { id = "cast", title = "Casting", open = true, rows = {
@@ -24,6 +25,18 @@ local function Options()
             L.Choice("Lure to use first", db, "lureChoice", { { "best", "Strongest" }, { "weakest", "Weakest" } }),
             L.Choice("Back to normal gear after", db, "autoReturn", { { 0, "Never" }, { 5, "5 minutes" }, { 10, "10 minutes" }, { 20, "20 minutes" } }),
         } },
+        { id = "counter", title = "Catch counter and bite sound", open = true, rows = {
+            L.Koff("Show the catch counter", db, "showCounter", counter),
+            L.Koff("Counter: show the all-time total", db, "counterTotal", counter),
+            L.Koff("Counter: show catches per hour", db, "counterRate", counter),
+            L.Koff("Counter: lock its position", db, "counterLock"),
+            L.Note("Hover the counter for this session's catches; right-click it to reset the session."),
+            L.Koff("Play a sound when a fish bites", db, "biteSound"),
+            L.Choice("Bite sound", db, "biteSoundKind", { { "ready", "Ready check" }, { "raid", "Raid warning" }, { "alarm", "Alarm clock" }, { "quest", "Quest complete" } }, function() if F.Counter then F.Counter.PlayBite() end end),
+            L.Choice("Play it on", db, "biteSoundChannel", { { "Master", "Master (always heard)" }, { "SFX", "Effects" }, { "Dialog", "Dialog" } }),
+            L.Koff("Also show Fish on! at the top of the screen", db, "biteFlash"),
+            L.Note("The game has no bite event, so Fishie reacts when the bobber becomes clickable. Turn on /fishie debug to see what it notices."),
+        } },
         { id = "extras", title = "Sound, chat and display", rows = {
             L.Koff("Turn up effects, turn down music while fishing", db, "boostSound"),
             L.Koff("Chat line for each catch", db, "announce"),
@@ -42,5 +55,6 @@ F.WinLook.Setup({
     windows = {
         { id = "main", name = "Main window", global = "FishieFrame", strip = "template", defaultOn = true, title = function(f) return f.TitleText end },
         { id = "hud", name = "On-screen HUD", global = "FishieHUD", strip = "backdrop", noScale = true },
+        { id = "counter", name = "Catch counter", global = "FishieCounter", strip = "backdrop", noScale = true },
     },
 })
