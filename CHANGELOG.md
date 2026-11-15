@@ -1,5 +1,8 @@
 # Fishie
 
+## v0.4.2
+- /fishie debug now also keeps the last 500 debug lines in the saved data (they survive a /reload). /fishie debuglog shows the latest ones.
+
 ## v0.4.1
 - Fix: right-click to catch the fish sometimes did nothing, so you had to click the bobber. The right-click now decides what to do before you click instead of during it, and the game's pick-up range and facing angle are widened while the line is out (put back afterwards), since the bobber often lands further than the default range.
 - /fishie debug now also says what the right-click is aimed at while fishing.

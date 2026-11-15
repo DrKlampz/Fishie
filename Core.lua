@@ -58,8 +58,21 @@ end
 function F.Print(msg) print("|cff33ccffFishie:|r " .. tostring(msg)) end
 local Print = F.Print
 
+-- Debug lines go to chat and are also kept (the last 500) in the saved data, so they can be read
+-- after a /reload or logout without copying them out of the chat window.
+local DEBUG_KEEP = 500
 function F.Debug(msg)
-    if F.db and F.db.debug then print("|cff888888Fishie debug:|r " .. tostring(msg)) end
+    if not (F.db and F.db.debug) then return end
+    print("|cff888888Fishie debug:|r " .. tostring(msg))
+    local log = F.db.debugLog
+    if type(log) ~= "table" then log = {} F.db.debugLog = log end
+    local t = (_G.date and _G.date("%H:%M:%S")) or "?"
+    log[#log + 1] = ("%s +%.2f %s"):format(t, (_G.GetTime and _G.GetTime() or 0) % 1000, tostring(msg))
+    if #log > DEBUG_KEEP + 50 then
+        local keep = {}
+        for i = #log - DEBUG_KEEP + 1, #log do keep[#keep + 1] = log[i] end
+        F.db.debugLog = keep
+    end
 end
 
 local reported = {}
@@ -165,7 +178,12 @@ SlashCmdList.FISHIE = function(input)
     elseif cmd == "debug" then
         local v = rest:lower()
         if v == "on" then F.db.debug = true elseif v == "off" then F.db.debug = false else F.db.debug = not F.db.debug end
-        Print("Debug " .. (F.db.debug and "on: Fishie explains every click, cast and catch it sees." or "off"))
+        Print("Debug " .. (F.db.debug and "on: Fishie explains every click, cast and catch it sees, and keeps the last 500 lines in its saved data." or "off"))
+    elseif cmd == "debuglog" then
+        local log = F.db.debugLog or {}
+        if rest:lower() == "clear" then F.db.debugLog = {} Print("Debug log cleared.") return end
+        Print(("Debug log: %d lines kept (/fishie debuglog clear to empty it). Last 10:"):format(#log))
+        for i = math.max(1, #log - 9), #log do print("  " .. log[i]) end
     elseif cmd == "release" then
         if F.Cast.CatchOff then F.Cast.CatchOff() end
         if F.Cast.Release then F.Cast.Release() end
@@ -180,7 +198,8 @@ SlashCmdList.FISHIE = function(input)
         Print("/fishie applylure - put a lure on your pole now (use from a macro or button)")
         Print("/fishie doubleclick | lure | pole | sound | announce | refreshlure | warnlure | autocatch | autoloot | hud | counter | bite [on|off]")
         Print("/fishie minimap - show or hide the minimap button")
-        Print("/fishie debug [on|off] - explain every click, cast and catch in chat")
+        Print("/fishie debug [on|off] - explain every click, cast and catch in chat (and keep the last 500 lines)")
+        Print("/fishie debuglog [clear] - show the last kept debug lines")
         Print("/fishie release - give right-click back to the game if it ever feels stuck")
         Print("/fishie probe - show what the game reports about your pole and lures")
     end
