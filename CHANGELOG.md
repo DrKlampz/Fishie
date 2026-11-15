@@ -1,5 +1,8 @@
 # Fishie
 
+## v0.4.7
+- Fix: the catch counter and the bite sound were not loading (they started before the rest of the add-on was ready). They load properly now.
+
 ## v0.4.6
 - Small internal tweaks.
 

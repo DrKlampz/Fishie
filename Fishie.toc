@@ -11,11 +11,11 @@
 ## X-Wago-ID: jK8WYX6y
 
 IssueLog.lua
-Counter.lua
 Core.lua
 Look.lua
 LookSetup.lua
 Gear.lua
 Cast.lua
 Log.lua
+Counter.lua
 UI.lua
