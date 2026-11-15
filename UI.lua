@@ -207,9 +207,13 @@ local function BuildSetup(p)
         function() return F.db.autoReturn end, function(v) F.db.autoReturn = v end)
     back:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = back y = y - 34
 
-    local note = Label(p, "GameFontDisableSmall", "How it works: right-click casts. Right-click again when the bobber splashes to catch the fish.\nBoth are plain right-clicks; the game needs a real click for each, so nothing is fully automatic.\nBind a key under Options > Key Bindings > Fishie to cast without the mouse.")
+    local note = Label(p, "GameFontDisableSmall", "Right-click casts; right-click again when the bobber splashes. The game needs a real click for each, so Fishie can't fish unattended. Bind a key under Options > Key Bindings > Fishie to cast without the mouse.")
     note:SetPoint("TOPLEFT", 0, y)
     note:SetWidth(400)
+    note:SetJustifyH("LEFT")
+    note:SetWordWrap(true)
+    -- room for every row plus the note, so nothing hangs out of the bottom of the window
+    p.neededHeight = 62 + (-y) + 54 + 14
     function p.Refresh()
         for _, r in ipairs(p.rows) do
             if r.get then r:SetChecked(r.get() and true or false) elseif r.Refresh then r.Refresh() end
@@ -286,7 +290,7 @@ local function Build()
     frame = CreateFrame("Frame", "FishieFrame", UIParent, "BasicFrameTemplateWithInset")
     frame:SetFrameStrata("HIGH")
     frame:SetToplevel(true)
-    frame:SetSize(440, 590)
+    frame:SetSize(440, 540)
     if F.WinLook then F.WinLook.Attach("main", frame) end
     frame:SetPoint("CENTER", 200, 0)
     frame:SetMovable(true)
@@ -312,6 +316,7 @@ local function Build()
     BuildSession(panels.session)
     BuildCatches(panels.catches)
     BuildSetup(panels.setup)
+    if panels.setup.neededHeight and panels.setup.neededHeight > 540 then frame:SetHeight(panels.setup.neededHeight) end
     frame:SetScript("OnUpdate", function(self, dt)
         self.t = (self.t or 0) + dt
         if self.t > 1 then self.t = 0 UI.Refresh() end
