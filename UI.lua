@@ -172,6 +172,7 @@ local function BuildSetup(p)
         { "Chat line for each catch", "announce" },
         { "Show the on-screen fishing box", "showHUD" },
         { "Show the catch counter", "showCounter" },
+        { "Catch counter: only with a fishing pole equipped", "counterPoleOnly" },
         { "Play a sound when a fish bites", "biteSound" },
     }
     p.rows = {}

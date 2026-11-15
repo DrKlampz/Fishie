@@ -29,6 +29,7 @@ local function Options()
         } },
         { id = "counter", title = "Catch counter and bite sound", open = true, rows = {
             L.Koff("Show the catch counter", db, "showCounter", counter),
+            L.Koff("Counter: only with a fishing pole equipped", db, "counterPoleOnly", counter),
             L.Koff("Counter: show the all-time total", db, "counterTotal", counter),
             L.Koff("Counter: show catches per hour", db, "counterRate", counter),
             L.Koff("Counter: lock its position", db, "counterLock"),

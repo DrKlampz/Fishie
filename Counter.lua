@@ -65,9 +65,15 @@ function K.Refresh()
     frame:SetSize(math.max(110, frame.text:GetStringWidth() + 24), frame.text:GetStringHeight() + 18)
 end
 
+local function PoleOK()
+    if not F.db.counterPoleOnly then return true end
+    local ok, pole = pcall(function() return F.Gear and F.Gear.EquippedPole and F.Gear.EquippedPole() end)
+    return ok and pole and true or false
+end
+
 function K.Apply()
     if not F.db then return end
-    if F.db.showCounter then
+    if F.db.showCounter and PoleOK() then
         Build():Show()
         K.Refresh()
     elseif frame then
@@ -76,6 +82,7 @@ function K.Apply()
 end
 
 F.AddHook("loaded", function() F.On("PLAYER_LOGIN", K.Apply) end)
+F.On("PLAYER_EQUIPMENT_CHANGED", function() K.Apply() end)
 -- the number changes whenever a catch is recorded or the session is reset
 do
     local rec, reset = F.Log.Record, F.Log.ResetSession

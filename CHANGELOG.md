@@ -1,5 +1,8 @@
 # Fishie
 
+## v0.4.9
+- New: the catch counter can show only while a fishing pole is equipped (on by default). Turn it off in Setup or the Look window to show it all the time.
+
 ## v0.4.8
 - Shift-click on the minimap button turns the catch counter on and off.
 

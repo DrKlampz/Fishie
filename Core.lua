@@ -28,6 +28,7 @@ F.DEFAULTS = {
     autoReturn = 0,           -- minutes without fishing before the normal outfit comes back (0 = never)
     showHUD = false,          -- small on-screen box with the cast timer, lure and catches
     showCounter = true,       -- small always-on box with the number of fish caught
+    counterPoleOnly = true,   -- counter: only show it while a fishing pole is equipped
     counterTotal = true,      -- counter: also show the all-time total
     counterRate = true,       -- counter: also show catches per hour
     counterLock = false,      -- counter: stop it being dragged
