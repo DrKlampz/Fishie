@@ -105,7 +105,11 @@ end)
 -- The two clicks. WorldFrame only sees clicks that land on the 3D world, not on the UI.
 function C.OnWorldDown(button)
     if button ~= "RightButton" then return end
-    if catching and C.CatchRoute then C.CatchRoute() end
+    if catching then
+        local g = UnitGUID and UnitGUID("softinteract")
+        F.Debug("catch click: soft target " .. ((g and not F.IsSecret(g)) and tostring(g) or "nothing"))
+        if C.CatchRoute then C.CatchRoute() end
+    end
     if not (F.db and F.db.doubleClick) then return end
     if not ModHeld() then F.Debug("modifier not held, ignoring click") return end
     local now = GetTime()
@@ -254,27 +258,24 @@ function C.CatchRoute()
         C.CatchOff()
     end
 end
--- Decide ahead of the click, not during it: the game reads the binding as the click lands, so changing
--- it from the mouse-down hook was too late and the first right-click sometimes did nothing.
+-- Right-click always interacts with the game's soft target while the line is out. (An earlier version
+-- handed the click back to the game whenever a tooltip showed under the cursor; the debug log showed
+-- those were the clicks that needed two or three tries, while the soft target was the bobber every time.)
+-- The poller only logs what the soft target is when it changes.
 do
-    local routed, acc = nil, 0
+    local lastGuid, acc = nil, 0
     local poll = CreateFrame("Frame")
     poll:SetScript("OnUpdate", function(_, dt)
-        if not catching then routed = nil return end
+        if not catching then lastGuid = nil return end
         acc = acc + dt
-        if acc < 0.05 then return end
+        if acc < 0.1 then return end
         acc = 0
         if InCombatLockdown and InCombatLockdown() then return end
-        local over = CursorOnObject() and true or false
-        if over == routed then return end
-        routed = over
-        if over then
-            ClearOverrideBindings(catchOwner)
-            F.Debug("catch: cursor is on the bobber, normal click")
-        else
-            pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
-            local g = UnitGUID and UnitGUID("softinteract")
-            F.Debug("catch: right-click interacts with the soft target " .. ((g and not F.IsSecret(g)) and tostring(g) or "(none yet)"))
+        local g = UnitGUID and UnitGUID("softinteract")
+        if g and F.IsSecret(g) then g = nil end
+        if g ~= lastGuid then
+            lastGuid = g
+            F.Debug("soft target is now " .. (g and tostring(g) or "nothing"))
         end
     end)
 end

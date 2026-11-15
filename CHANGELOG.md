@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.4.3
+- Fix: catching a fish with right-click often took two or three clicks. Fishie handed the click back to the game whenever a tooltip showed under the cursor, and those clicks missed. Right-click now always interacts with the bobber through the game's pick-up target, which the debug log showed was the bobber every time.
+- Debug log: each catch click and each change of pick-up target is recorded.
+
 ## v0.4.2
 - /fishie debug now also keeps the last 500 debug lines in the saved data (they survive a /reload). /fishie debuglog shows the latest ones.
 
