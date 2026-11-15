@@ -217,6 +217,12 @@ function C.CatchOn()
         savedSoft = { SoftTargetInteract = GetCVar("SoftTargetInteract"), softTargetInteract = GetCVar("softTargetInteract") }
         SetVol("SoftTargetInteract", 3)
         SetVol("softTargetInteract", 3)
+        -- the bobber often lands further out than the game's default pick-up range, and only counts
+        -- when you face it: widen both while the line is out (put back afterwards)
+        for k, want in pairs({ SoftTargetInteractRange = 45, SoftTargetInteractArc = 2 }) do
+            local cur = GetCVar(k)
+            if cur ~= nil then savedSoft[k] = cur SetVol(k, want) end
+        end
     end
     local ok = pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
     catching = ok
@@ -246,15 +252,31 @@ function C.CatchRoute()
     if not Channeling() then
         F.Debug("catch binding was left over: removing it")
         C.CatchOff()
-        return
     end
-    if CursorOnObject() then
-        ClearOverrideBindings(catchOwner)
-        F.Debug("catch: cursor is on the bobber, normal click")
-    else
-        pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
-        F.Debug("catch: interact with soft target")
-    end
+end
+-- Decide ahead of the click, not during it: the game reads the binding as the click lands, so changing
+-- it from the mouse-down hook was too late and the first right-click sometimes did nothing.
+do
+    local routed, acc = nil, 0
+    local poll = CreateFrame("Frame")
+    poll:SetScript("OnUpdate", function(_, dt)
+        if not catching then routed = nil return end
+        acc = acc + dt
+        if acc < 0.05 then return end
+        acc = 0
+        if InCombatLockdown and InCombatLockdown() then return end
+        local over = CursorOnObject() and true or false
+        if over == routed then return end
+        routed = over
+        if over then
+            ClearOverrideBindings(catchOwner)
+            F.Debug("catch: cursor is on the bobber, normal click")
+        else
+            pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
+            local g = UnitGUID and UnitGUID("softinteract")
+            F.Debug("catch: right-click interacts with the soft target " .. ((g and not F.IsSecret(g)) and tostring(g) or "(none yet)"))
+        end
+    end)
 end
 function C.CatchOff()
     if savedSoft then

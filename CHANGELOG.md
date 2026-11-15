@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.4.1
+- Fix: right-click to catch the fish sometimes did nothing, so you had to click the bobber. The right-click now decides what to do before you click instead of during it, and the game's pick-up range and facing angle are widened while the line is out (put back afterwards), since the bobber often lands further than the default range.
+- /fishie debug now also says what the right-click is aimed at while fishing.
+
 ## v0.4.0
 - New: a catch counter, a small box that stays on screen with this session's catches, catches per hour and your all-time total. Hover it for what you caught this session, right-click to reset. Drag it anywhere, lock it, and restyle it from the Look window.
 - New: a bite sound (and "Fish on!" at the top of the screen) when a fish bites. The game gives add-ons no bite event, so this reacts when the bobber becomes clickable. Pick the sound and the volume channel in the Look window. If it stays quiet for you, turn on /fishie debug and tell me what it prints.
