@@ -199,6 +199,10 @@ local function BuildSetup(p)
         { "none", "no key" }, { "shift", "Shift" }, { "ctrl", "Ctrl" }, { "alt", "Alt" } },
         function() return F.db.clickMod end, function(v) F.db.clickMod = v end)
     mod:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = mod y = y - 28
+    local delay = Cycle(p, "Ignore right-click for the first", {
+        { 0, "no wait" }, { 2, "2 seconds" }, { 3, "3 seconds" }, { 4, "4 seconds" }, { 5, "5 seconds" }, { 7, "7 seconds" } },
+        function() return F.db.catchDelay end, function(v) F.db.catchDelay = v end)
+    delay:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = delay y = y - 28
     local lure = Cycle(p, "Lure to use first", { { "best", "strongest" }, { "weakest", "weakest" } },
         function() return F.db.lureChoice end, function(v) F.db.lureChoice = v end)
     lure:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = lure y = y - 28

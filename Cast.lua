@@ -36,6 +36,13 @@ btn:SetAttribute("macrotext", "/cast Fishing")
 
 local catchOwner = CreateFrame("Frame")
 local catching, savedSoft = false, nil   -- auto-catch state, used below
+local catchToken = 0
+-- a button that does nothing: right-click is pointed here for the first seconds after a cast
+local blocker = CreateFrame("Button", "FishieBlockButton", UIParent, "SecureActionButtonTemplate")
+blocker:SetSize(1, 1)
+blocker:SetPoint("BOTTOMLEFT", -10, -10)
+blocker:RegisterForClicks("AnyUp", "AnyDown")
+blocker:SetScript("PostClick", function() F.Debug("right-click ignored: the line was cast just now") end)
 local armedAt, clearTimer = nil, 0
 local lastUp = 0
 
@@ -228,9 +235,25 @@ function C.CatchOn()
             if cur ~= nil then savedSoft[k] = cur SetVol(k, want) end
         end
     end
-    local ok = pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
+    -- Fish do not bite in the first couple of seconds, so right-clicks in that window do nothing instead
+    -- of pulling the line in early. After it, right-click interacts with the bobber.
+    local wait = tonumber(F.db and F.db.catchDelay) or 0
+    local ok
+    if wait > 0 then
+        ok = pcall(SetOverrideBindingClick, catchOwner, true, "BUTTON2", "FishieBlockButton")
+        catchToken = catchToken + 1
+        local mine = catchToken
+        C_Timer.After(wait, function()
+            if mine ~= catchToken or not catching then return end
+            if InCombatLockdown and InCombatLockdown() then return end
+            pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
+            F.Debug(("catch: %gs passed, right-click now catches"):format(wait))
+        end)
+    else
+        ok = pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
+    end
     catching = ok
-    F.Debug("auto-catch " .. (ok and "on: right-click loots the bobber" or "could not bind"))
+    F.Debug("auto-catch " .. (ok and ("on: right-click loots the bobber" .. (wait > 0 and (" after " .. wait .. "s") or "")) or "could not bind"))
     if ok then
         -- watchdog: never leave right-click bound once the line is in
         local function Watch()

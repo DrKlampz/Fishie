@@ -14,6 +14,7 @@ local function Options()
             L.Choice("Double-click speed", db, "clickWindow", { { 0.25, "Fast (0.25s)" }, { 0.4, "Normal (0.4s)" }, { 0.6, "Slow (0.6s)" }, { 0.8, "Slower (0.8s)" } }),
             L.Choice("Hold a key while double-clicking", db, "clickMod", { { "none", "No key" }, { "shift", "Shift" }, { "ctrl", "Ctrl" }, { "alt", "Alt" } }),
             L.Koff("Right-click loots the bobber (no aiming)", db, "autoCatch"),
+            L.Choice("Ignore right-click for the first", db, "catchDelay", { { 0, "No wait" }, { 2, "2 seconds" }, { 3, "3 seconds" }, { 4, "4 seconds" }, { 5, "5 seconds" }, { 7, "7 seconds" } }),
             L.Koff("Auto-loot while fishing", db, "autoLoot"),
             L.Note("Right-click casts; right-click again when the bobber splashes. Bind a key under Options > Key Bindings > Fishie to cast without the mouse."),
         } },

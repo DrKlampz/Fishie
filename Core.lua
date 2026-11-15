@@ -21,6 +21,7 @@ F.DEFAULTS = {
     lureChoice = "best",      -- "best" or "weakest" lure first
     refreshLure = true,       -- put a new lure on when the old one has under a minute left
     warnLure = true,          -- chat warning when the lure is about to run out
+    catchDelay = 3,           -- seconds after a cast during which right-click does nothing (fish do not bite that fast)
     autoCatch = true,         -- while the line is out, right-click loots the bobber without aiming
     autoLoot = true,          -- turn on auto-loot while fishing, then put it back
     autoReturn = 0,           -- minutes without fishing before the normal outfit comes back (0 = never)

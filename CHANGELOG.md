@@ -1,5 +1,8 @@
 # Fishie
 
+## v0.4.4
+- New: right-click does nothing for the first 3 seconds after a cast, so an early click can no longer pull the line in before a fish could bite. Change the wait (or turn it off) in Setup or the Look window under "Ignore right-click for the first". Needs "Right-click loots the bobber" on.
+
 ## v0.4.3
 - Fix: catching a fish with right-click often took two or three clicks. Fishie handed the click back to the game whenever a tooltip showed under the cursor, and those clicks missed. Right-click now always interacts with the bobber through the game's pick-up target, which the debug log showed was the bobber every time.
 - Debug log: each catch click and each change of pick-up target is recorded.
