@@ -238,6 +238,8 @@ function C.CatchOn()
     -- Fish do not bite in the first couple of seconds, so right-clicks in that window do nothing instead
     -- of pulling the line in early. After it, right-click interacts with the bobber.
     local wait = tonumber(F.db and F.db.catchDelay) or 0
+    local extra = tonumber(F.db and F.db.catchJitter) or 0
+    if wait > 0 and extra > 0 then wait = wait + math.random() * extra end   -- a different wait every cast
     local ok
     if wait > 0 then
         ok = pcall(SetOverrideBindingClick, catchOwner, true, "BUTTON2", "FishieBlockButton")
@@ -247,13 +249,13 @@ function C.CatchOn()
             if mine ~= catchToken or not catching then return end
             if InCombatLockdown and InCombatLockdown() then return end
             pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
-            F.Debug(("catch: %gs passed, right-click now catches"):format(wait))
+            F.Debug(("catch: %.1fs passed, right-click now catches"):format(wait))
         end)
     else
         ok = pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
     end
     catching = ok
-    F.Debug("auto-catch " .. (ok and ("on: right-click loots the bobber" .. (wait > 0 and (" after " .. wait .. "s") or "")) or "could not bind"))
+    F.Debug("auto-catch " .. (ok and ("on: right-click loots the bobber" .. (wait > 0 and (" after " .. ("%.1f"):format(wait) .. "s") or "")) or "could not bind"))
     if ok then
         -- watchdog: never leave right-click bound once the line is in
         local function Watch()

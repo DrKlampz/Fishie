@@ -1,5 +1,8 @@
 # Fishie
 
+## v0.4.5
+- New: "Plus a random extra wait" adds up to 1.5 extra seconds (your choice, or none) on top of the right-click wait, a different amount every cast. Clicks are still all yours.
+
 ## v0.4.4
 - New: right-click does nothing for the first 3 seconds after a cast, so an early click can no longer pull the line in before a fish could bite. Change the wait (or turn it off) in Setup or the Look window under "Ignore right-click for the first". Needs "Right-click loots the bobber" on.
 

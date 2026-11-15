@@ -203,6 +203,10 @@ local function BuildSetup(p)
         { 0, "no wait" }, { 2, "2 seconds" }, { 3, "3 seconds" }, { 4, "4 seconds" }, { 5, "5 seconds" }, { 7, "7 seconds" } },
         function() return F.db.catchDelay end, function(v) F.db.catchDelay = v end)
     delay:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = delay y = y - 28
+    local jit = Cycle(p, "Plus a random extra wait", {
+        { 0, "none" }, { 1, "up to 1s" }, { 1.5, "up to 1.5s" }, { 2, "up to 2s" }, { 3, "up to 3s" } },
+        function() return F.db.catchJitter end, function(v) F.db.catchJitter = v end)
+    jit:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = jit y = y - 28
     local lure = Cycle(p, "Lure to use first", { { "best", "strongest" }, { "weakest", "weakest" } },
         function() return F.db.lureChoice end, function(v) F.db.lureChoice = v end)
     lure:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = lure y = y - 28
