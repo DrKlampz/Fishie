@@ -10,6 +10,7 @@ F.Trim = Trim
 
 F.DEFAULTS = {
     doubleClick = true,       -- double right-click in the world casts Fishing
+    castButton = "BUTTON2",   -- mouse button that casts / loots: BUTTON1 left, BUTTON2 right, BUTTON3 middle, BUTTON4/5 side buttons
     castClicks = 1,           -- 1 = single right-click casts (pole in hand), 2 = double right-click
     clickWindow = 0.4,        -- seconds allowed between the two clicks
     autoLure = true,          -- put a lure on the pole before casting when it has none

@@ -10,6 +10,7 @@ local function Options()
     return { sections = {
         { id = "cast", title = "Casting", open = true, rows = {
             L.Koff("Right-click to cast (needs a pole in hand)", db, "doubleClick"),
+            L.Choice("Mouse button", db, "castButton", { { "BUTTON2", "Right button" }, { "BUTTON1", "Left button" }, { "BUTTON3", "Middle button" }, { "BUTTON4", "Side button 1 (Button 4)" }, { "BUTTON5", "Side button 2 (Button 5)" } }),
             L.Choice("Cast with", db, "castClicks", { { 1, "Single click" }, { 2, "Double-click" } }),
             L.Choice("Double-click speed", db, "clickWindow", { { 0.25, "Fast (0.25s)" }, { 0.4, "Normal (0.4s)" }, { 0.6, "Slow (0.6s)" }, { 0.8, "Slower (0.8s)" } }),
             L.Choice("Hold a key while double-clicking", db, "clickMod", { { "none", "No key" }, { "shift", "Shift" }, { "ctrl", "Ctrl" }, { "alt", "Alt" } }),

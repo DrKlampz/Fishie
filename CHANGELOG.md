@@ -1,5 +1,8 @@
 # Fishie
 
+## v0.4.14
+- New option: choose which mouse button casts and loots the bobber (right, left, middle or the side buttons). It is in the options under Mouse button.
+
 ## v0.4.13
 - New: with a fishing pole equipped, music, ambience and voices are turned down (to 25% by default, your choice in the options) so the splash and fish-on sound stand out. They come back when you take the pole off.
 - While your line is out, effects and master volume go all the way up and voices are silenced too.

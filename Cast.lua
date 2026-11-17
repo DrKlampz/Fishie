@@ -64,6 +64,15 @@ function C.Release()
     F.AfterCombat(function() ClearOverrideBindings(btn) end)
 end
 
+-- Which mouse button casts (and loots the bobber): Fishie > Mouse button. Right button by default.
+local BUTTONS = { BUTTON1 = "LeftButton", BUTTON2 = "RightButton", BUTTON3 = "MiddleButton", BUTTON4 = "Button4", BUTTON5 = "Button5" }
+local function BindName()
+    local b = F.db and F.db.castButton
+    return BUTTONS[b] and b or "BUTTON2"
+end
+local function ClickName() return BUTTONS[BindName()] end
+C.BindName = BindName
+
 -- Choose what the button does right now: put a lure on, or cast. Returns "lure" or "cast".
 function C.Prepare()
     if InCombatLockdown and InCombatLockdown() then return nil end
@@ -93,7 +102,7 @@ function C.Arm()
     end
     local what = C.Prepare()
     ClearOverrideBindings(btn)
-    SetOverrideBindingClick(btn, true, "BUTTON2", "FishieCastButton")
+    SetOverrideBindingClick(btn, true, BindName(), "FishieCastButton")
     armedAt = GetTime()
     clearTimer = clearTimer + 1
     local mine = clearTimer
@@ -111,7 +120,7 @@ end)
 
 -- The two clicks. WorldFrame only sees clicks that land on the 3D world, not on the UI.
 function C.OnWorldDown(button)
-    if button ~= "RightButton" then return end
+    if button ~= ClickName() then return end
     if catching then
         local g = UnitGUID and UnitGUID("softinteract")
         F.Debug("catch click: soft target " .. ((g and not F.IsSecret(g)) and tostring(g) or "nothing"))
@@ -136,7 +145,7 @@ function C.OnWorldDown(button)
 end
 
 function C.OnWorldUp(button)
-    if button == "RightButton" then lastUp = GetTime() F.Debug("world right-click up") end
+    if button == ClickName() then lastUp = GetTime() F.Debug("world right-click up") end
 end
 
 BINDING_HEADER_FISHIE = "Fishie"
@@ -287,17 +296,17 @@ function C.CatchOn()
     if wait > 0 and extra > 0 then wait = wait + math.random() * extra end   -- a different wait every cast
     local ok
     if wait > 0 then
-        ok = pcall(SetOverrideBindingClick, catchOwner, true, "BUTTON2", "FishieBlockButton")
+        ok = pcall(SetOverrideBindingClick, catchOwner, true, BindName(), "FishieBlockButton")
         catchToken = catchToken + 1
         local mine = catchToken
         C_Timer.After(wait, function()
             if mine ~= catchToken or not catching then return end
             if InCombatLockdown and InCombatLockdown() then return end
-            pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
+            pcall(SetOverrideBinding, catchOwner, true, BindName(), "INTERACTTARGET")
             F.Debug(("catch: %.1fs passed, right-click now catches"):format(wait))
         end)
     else
-        ok = pcall(SetOverrideBinding, catchOwner, true, "BUTTON2", "INTERACTTARGET")
+        ok = pcall(SetOverrideBinding, catchOwner, true, BindName(), "INTERACTTARGET")
     end
     catching = ok
     F.Debug("auto-catch " .. (ok and ("on: right-click loots the bobber" .. (wait > 0 and (" after " .. ("%.1f"):format(wait) .. "s") or "")) or "could not bind"))

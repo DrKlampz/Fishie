@@ -189,6 +189,9 @@ local function BuildSetup(p)
     mm:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = mm
     y = y - 32
 
+    local btnc = Cycle(p, "Mouse button", { { "BUTTON2", "right" }, { "BUTTON1", "left" }, { "BUTTON3", "middle" }, { "BUTTON4", "side 1" }, { "BUTTON5", "side 2" } },
+        function() return F.db.castButton or "BUTTON2" end, function(v) F.db.castButton = v end)
+    btnc:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = btnc y = y - 28
     local clicks = Cycle(p, "Cast with", { { 1, "single click" }, { 2, "double-click" } },
         function() return F.db.castClicks or 1 end, function(v) F.db.castClicks = v end)
     clicks:SetPoint("TOPLEFT", 0, y) p.rows[#p.rows + 1] = clicks y = y - 28
