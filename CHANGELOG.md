@@ -1,5 +1,8 @@
 # Fishie
 
+## v0.4.12
+- Fix: the splash-sound and auto-loot settings are now applied once combat ends instead of being refused by the game mid-fight.
+
 ## v0.4.11
 - Fix: each catch was counted and announced twice when auto-loot was on (the game sends its loot-ready event twice). One cast now counts once. Totals recorded before this update may be too high.
 

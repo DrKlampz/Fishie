@@ -151,8 +151,20 @@ end
 -- Sound: make the splash audible while fishing, put it back afterwards
 ---------------------------------------------------------------------------
 local saved
+-- the game refuses SetCVar during combat: remember the change and apply it when combat ends
+local pendingVol = {}
 local function SetVol(name, v)
-    if SetCVar then pcall(SetCVar, name, v) end
+    if not SetCVar then return end
+    if InCombatLockdown and InCombatLockdown() then pendingVol[name] = v return end
+    pendingVol[name] = nil
+    pcall(SetCVar, name, v)
+end
+do
+    local f = CreateFrame("Frame")
+    f:RegisterEvent("PLAYER_REGEN_ENABLED")
+    f:SetScript("OnEvent", function()
+        for name, v in pairs(pendingVol) do pendingVol[name] = nil pcall(SetCVar, name, v) end
+    end)
 end
 
 local function Boost()
