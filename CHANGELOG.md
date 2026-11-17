@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.4.13
+- New: with a fishing pole equipped, music, ambience and voices are turned down (to 25% by default, your choice in the options) so the splash and fish-on sound stand out. They come back when you take the pole off.
+- While your line is out, effects and master volume go all the way up and voices are silenced too.
+
 ## v0.4.12
 - Fix: the splash-sound and auto-loot settings are now applied once combat ends instead of being refused by the game mid-fight.
 

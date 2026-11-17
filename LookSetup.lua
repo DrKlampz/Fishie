@@ -37,6 +37,8 @@ local function Options()
         } },
         { id = "extras", title = "Sound, chat and display", rows = {
             L.Koff("Turn up effects, turn down music while fishing", db, "boostSound"),
+            L.Koff("Turn music and ambience down while a fishing pole is equipped", db, "muffle", function() if F.Cast then F.Cast.ApplyMuffle() end end),
+            L.Choice("Music, ambience and voices stay at", db, "muffleLevel", { { 0, "Silent" }, { 0.1, "10%" }, { 0.25, "25%" }, { 0.5, "50%" }, { 0.75, "75%" } }, function() if F.Cast then F.Cast.ApplyMuffle() end end),
             L.Koff("Chat line for each catch", db, "announce"),
             L.Koff("Show the on-screen fishing box", db, "showHUD", hud),
             L.Koff("Show the minimap button", mmdb, "show", function() if F.UI and F.UI.UpdateMinimap then F.UI.UpdateMinimap() end end),

@@ -15,6 +15,8 @@ F.DEFAULTS = {
     autoLure = true,          -- put a lure on the pole before casting when it has none
     autoPole = true,          -- equip a pole (your fishing outfit) when you double-click without one
     boostSound = true,        -- turn up effects and turn down music/ambience while fishing
+    muffle = true,            -- music, ambience and voices turned down while a fishing pole is equipped
+    muffleLevel = 0.25,       -- how much of their normal volume is left (0 = silent)
     announce = true,          -- one line in chat for each catch
     debug = false,            -- /fishie debug: explain what Fishie sees in chat
     clickMod = "none",        -- hold shift / ctrl / alt for the double-click to count ("none" = no key)

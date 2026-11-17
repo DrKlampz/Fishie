@@ -173,11 +173,43 @@ local function Boost()
         Sound_SFXVolume = GetCVar("Sound_SFXVolume"),
         Sound_MusicVolume = GetCVar("Sound_MusicVolume"),
         Sound_AmbienceVolume = GetCVar("Sound_AmbienceVolume"),
+        Sound_MasterVolume = GetCVar("Sound_MasterVolume"),
+        Sound_DialogVolume = GetCVar("Sound_DialogVolume"),
     }
+    -- the splash is a sound effect: effects and master all the way up, everything else out of its way
+    SetVol("Sound_MasterVolume", 1)
     SetVol("Sound_SFXVolume", 1)
     SetVol("Sound_MusicVolume", 0)
     SetVol("Sound_AmbienceVolume", 0)
+    SetVol("Sound_DialogVolume", 0)
 end
+
+-- While a fishing pole is in your hand, turn music, ambience and voices down to a fraction of what
+-- they were (Fishie > Sound), so the splash and the "fish on" sound stand out. Put back when it comes off.
+local muffled
+local function Unmuffle()
+    if not muffled then return end
+    for k, v in pairs(muffled) do SetVol(k, v) end
+    muffled = nil
+end
+function C.ApplyMuffle()
+    if not (F.db and GetCVar) then return end
+    local want = F.db.muffle ~= false and F.Gear and F.Gear.EquippedPole and F.Gear.EquippedPole() and true or false
+    if not want then Unmuffle() return end
+    if saved then return end   -- a cast is out: its own boost owns the volumes until it ends
+    local lvl = tonumber(F.db.muffleLevel) or 0.25
+    if not muffled then
+        muffled = {
+            Sound_MusicVolume = GetCVar("Sound_MusicVolume"),
+            Sound_AmbienceVolume = GetCVar("Sound_AmbienceVolume"),
+            Sound_DialogVolume = GetCVar("Sound_DialogVolume"),
+        }
+    end
+    for k, v in pairs(muffled) do SetVol(k, (tonumber(v) or 0) * lvl) end
+    SetVol("Sound_SFXVolume", 1)
+end
+F.On("PLAYER_EQUIPMENT_CHANGED", function() C_Timer.After(0.3, C.ApplyMuffle) end)
+F.On("PLAYER_ENTERING_WORLD", function() C_Timer.After(2, C.ApplyMuffle) end)
 
 local savedLoot
 local function BoostLoot()
@@ -197,6 +229,7 @@ local function Restore()
     if not saved then return end
     for k, v in pairs(saved) do SetVol(k, v) end
     saved = nil
+    C_Timer.After(0.2, C.ApplyMuffle)
 end
 C.Restore = Restore
 
@@ -366,7 +399,7 @@ F.On("UNIT_SPELLCAST_CHANNEL_STOP", function(_, unit)
     C.CatchOff()
     C_Timer.After(0.5, function() if not IsFishingChannel() then Restore() end end)
 end)
-F.On("PLAYER_LOGOUT", Restore)
+F.On("PLAYER_LOGOUT", function() Restore() Unmuffle() end)
 F.On("PLAYER_ENTERING_WORLD", function() cachedName = nil end)
 
 ---------------------------------------------------------------------------

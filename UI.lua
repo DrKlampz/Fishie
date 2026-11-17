@@ -169,6 +169,7 @@ local function BuildSetup(p)
         { "Right-click loots the bobber (no aiming)", "autoCatch" },
         { "Auto-loot while fishing", "autoLoot" },
         { "Turn up effects, turn down music while fishing", "boostSound" },
+        { "Turn music and ambience down while a pole is equipped", "muffle" },
         { "Chat line for each catch", "announce" },
         { "Show the on-screen fishing box", "showHUD" },
         { "Show the catch counter", "showCounter" },
