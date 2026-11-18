@@ -4,7 +4,7 @@
 ## Author: David
 ## Version: @project-version@
 ## Category: Professions
-## IconTexture: Interface\Icons\Trade_Fishing
+## IconTexture: Interface\AddOns\Fishie\Media\Icon
 ## AddonCompartmentFunc: Fishie_OnAddonCompartmentClick
 ## SavedVariables: FishieDB
 ## X-License: MIT
