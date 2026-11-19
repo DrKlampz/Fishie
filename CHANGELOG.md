@@ -1,5 +1,8 @@
 # Fishie
 
+## Unreleased
+- The main window now sits above the on-screen HUD instead of sharing its layer.
+
 ## v0.4.14
 - New option: choose which mouse button casts and loots the bobber (right, left, middle or the side buttons). It is in the options under Mouse button.
 

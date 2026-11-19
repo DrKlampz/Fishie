@@ -300,7 +300,7 @@ end
 local function Build()
     if frame then return end
     frame = CreateFrame("Frame", "FishieFrame", UIParent, "BasicFrameTemplateWithInset")
-    frame:SetFrameStrata("HIGH")
+    frame:SetFrameStrata("DIALOG")
     frame:SetToplevel(true)
     frame:SetSize(440, 540)
     if F.WinLook then F.WinLook.Attach("main", frame) end
