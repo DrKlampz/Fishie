@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.4.24
+
+- Redrawn anarchy symbol with a hand-brushed, worn look
+
 ## v0.4.23
 
 - New background symbols: sword, crossed swords, shield, sun and paw print
