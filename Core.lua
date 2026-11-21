@@ -37,11 +37,6 @@ F.DEFAULTS = {
     counterLock = false,      -- counter: stop it being dragged
     counterPos = {},          -- where you dragged the counter
     hudPos = {},              -- where you dragged the HUD
-    outfit = {},              -- [slot] = item link, the gear you want on while fishing
-    normal = {},              -- [slot] = item link, what you had on before switching
-    fishing = false,          -- true while the fishing outfit is on
-    fish = {},                -- [zone] = { [itemName] = { count = n, link = "..." } }
-    total = 0,                -- fish and other items ever caught
     minimap = { show = true, angle = 150 },
 }
 
@@ -56,6 +51,59 @@ local function Merge(dst, src)
     end
     return dst
 end
+
+---------------------------------------------------------------------------
+-- What belongs to one character (its fishing outfit, the gear it normally wears, its catch log and totals)
+-- is kept under FishieDB.chars[character]. Everything else (options, looks) is shared by all characters.
+-- Code keeps writing F.db.outfit, F.db.fish and so on; this routes them to the character that is playing.
+---------------------------------------------------------------------------
+local PERCHAR = { outfit = true, normal = true, normalWeapon = true, fishing = true, fish = true, total = true }
+
+local function CharName()
+    local first, second = UnitName("player")
+    if type(first) ~= "string" or first == "" or first == "Unknown" or first == _G.UNKNOWNOBJECT then return nil end
+    -- some servers give characters two names; UnitName hands the last one back in the realm slot
+    if type(second) == "string" and second ~= "" and not first:find(" ", 1, true) then
+        local r1 = GetRealmName and GetRealmName()
+        local r2 = GetNormalizedRealmName and GetNormalizedRealmName()
+        if second ~= r1 and second ~= r2 then return first .. " " .. second end
+    end
+    return first
+end
+
+local scratch = { outfit = {}, normal = {}, fish = {}, total = 0, fishing = false }
+local mineKey
+local function Mine()
+    local db = FishieDB
+    if mineKey and db.chars and db.chars[mineKey] then return db.chars[mineKey] end
+    local name = CharName()
+    if not name then return scratch end
+    local realm = GetRealmName and GetRealmName()
+    if type(realm) == "string" and realm ~= "" then db.lastRealm = realm else realm = db.lastRealm or "" end
+    local key = name .. "-" .. realm
+    db.chars = db.chars or {}
+    local c = db.chars[key]
+    if not c then
+        c = { outfit = {}, normal = {}, fish = {}, total = 0, fishing = false }
+        db.chars[key] = c
+        -- data saved before this was split by character goes to the first character that plays
+        if not db.perCharMoved then
+            db.perCharMoved = true
+            for k in pairs(PERCHAR) do
+                local v = rawget(db, k)
+                if v ~= nil then c[k] = v rawset(db, k, nil) end
+            end
+        end
+    end
+    mineKey = key
+    return c
+end
+F.Mine = Mine
+
+local dbMeta = {
+    __index = function(_, k) if PERCHAR[k] then return Mine()[k] end end,
+    __newindex = function(t, k, v) if PERCHAR[k] then Mine()[k] = v else rawset(t, k, v) end end,
+}
 
 function F.Print(msg) print("|cff33ccffFishie:|r " .. tostring(msg)) end
 local Print = F.Print
@@ -105,6 +153,12 @@ frame:SetScript("OnEvent", function(_, event, ...)
         if (...) ~= ADDON_NAME then return end
         FishieDB = FishieDB or {}
         F.db = Merge(FishieDB, F.DEFAULTS)
+        for k in pairs(PERCHAR) do
+            -- a saved value from before the split stays visible until the first character claims it
+            if FishieDB.perCharMoved then rawset(FishieDB, k, nil) end
+        end
+        setmetatable(FishieDB, dbMeta)
+        pcall(Mine)
         F.Fire("loaded")
         return
     end
@@ -114,6 +168,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
     end
 end)
 frame:RegisterEvent("ADDON_LOADED")
+F.On("PLAYER_LOGIN", function() if FishieDB then pcall(Mine) end end)
 
 -- Things that can't change in combat wait until it ends.
 local waiting = {}

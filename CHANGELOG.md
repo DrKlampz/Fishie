@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.4.25
+
+- Each character now keeps its own fishing outfit, normal gear, catch log and all-time total. Before, every character shared them, so a second fisher got the first one's outfit. Options and looks are still shared. What was saved before goes to the first character that plays.
+
 ## v0.4.24
 
 - Redrawn anarchy symbol with a hand-brushed, worn look
