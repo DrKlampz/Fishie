@@ -1,5 +1,10 @@
 # Fishie
 
+## v0.4.27
+
+- The zone box on the world map now sits inside the map, above the coordinates bar, instead of covering the quest log
+
+
 ## v0.4.26
 
 - New: fishing pools on the world map and minimap. Fishie now shows where schools and floating debris spawn (from ForeverDB.net, limited to the zones it has data for) and remembers the spots you fish. Only shown for a character that has Fishing. Choose the icon sizes, opacity and how many show in the options
