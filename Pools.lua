@@ -126,6 +126,8 @@ local function Spawns(m)
     for id, e in pairs(z.k) do
         local kind = d.kinds[id]
         local label = kind and kind.n or "Fishing pool"
+        -- ForeverDB's "Open water" is a spot players fished at in Forever, not a pool: it shows as a fishing spot
+        if label == "Open water" then label = nil end
         if e.f ~= "" then decode(e.f, list, label, "seen") end
         if e.c ~= "" then decode(e.c, list, label, "classic") end
     end
@@ -179,7 +181,10 @@ local function createPin(parent, kind)
         if not s then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:AddLine(s.pool or "Fishing spot", 0.4, 0.7, 1)
-        if s.spawn then
+        if s.spawn and not s.pool then
+            GameTooltip:AddLine("Players fished here in WoW Forever", 0.9, 0.9, 0.9)
+            GameTooltip:AddLine("Data from ForeverDB.net", 0.6, 0.6, 0.6)
+        elseif s.spawn then
             GameTooltip:AddLine(s.spawn == "seen" and "|cff40ff40Seen by players in WoW Forever|r" or "|cffd0d060Classic spawn point (may differ in Forever)|r", 0.9, 0.9, 0.9)
             GameTooltip:AddLine("Data from ForeverDB.net", 0.6, 0.6, 0.6)
         else
