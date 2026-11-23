@@ -232,6 +232,8 @@ SlashCmdList.FISHIE = function(input)
         F.db.minimap.show = not F.db.minimap.show
         Print("Minimap button " .. (F.db.minimap.show and "shown (reload to bring it back)." or "hidden."))
         if F.UI and F.UI.UpdateMinimap then F.UI.UpdateMinimap() end
+    elseif cmd == "zone" then
+        if F.ZoneDebug then F.ZoneDebug() end
     elseif cmd == "debug" then
         local v = rest:lower()
         if v == "on" then F.db.debug = true elseif v == "off" then F.db.debug = false else F.db.debug = not F.db.debug end

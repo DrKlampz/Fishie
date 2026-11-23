@@ -1,5 +1,5 @@
 -- Zones: which fish a zone gives, shown on the world map for the zone under the cursor. The guide is general
--- (Classic); the "You caught here" line comes from your own log and is what you actually pulled up.
+-- (Classic); the "You gathered here" line comes from your own log and is what you actually pulled up.
 local ADDON_NAME, F = ...
 
 local SW = "Oily Blackmouth, Firefin Snapper"   -- the two saltwater schools
@@ -53,7 +53,7 @@ local box
 local function build()
     if box or not WorldMapFrame then return box end
     box = CreateFrame("Frame", "FishieZoneInfo", WorldMapFrame, "BackdropTemplate")
-    box:SetFrameStrata("FULLSCREEN_DIALOG")
+    box:SetFrameStrata("TOOLTIP")
     box:SetSize(300, 50)
     box:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
     box:SetBackdropColor(0.06, 0.06, 0.08, 0.9)
@@ -74,7 +74,7 @@ local function zoneUnderCursor()
     local api = _G.OpenMapAPI
     if api and api.IsStitched and api.IsStitched() then
         local u, v = api.CursorPosition()
-        return u and api.MapAt(u, v) or nil
+        if u then return api.MapAt(u, v) end
     end
     local view = WorldMapFrame.GetMapID and WorldMapFrame:GetMapID()
     local sc = WorldMapFrame.ScrollContainer
@@ -88,12 +88,32 @@ local function zoneUnderCursor()
     return view
 end
 
+local function nameOf(id)
+    local info = id and C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(id)
+    return info and info.name
+end
+local function pickZone()
+    local ids = { zoneUnderCursor(), WorldMapFrame.GetMapID and WorldMapFrame:GetMapID(), C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player") }
+    for _, id in ipairs(ids) do
+        local n = nameOf(id)
+        if n and (G[n] or caught(n)) then return id end
+    end
+    return ids[1]
+end
+function F.ZoneDebug()
+    local api = _G.OpenMapAPI
+    local id = WorldMapFrame and pickZone()
+    local n = nameOf(id)
+    print(("|cff6ab0f5Fishie:|r zone box: %s, OpenMap %s, stitched %s, zone %s (%s), guide %s, setting %s, map shown %s"):format(
+        box and "built" or "not built", api and "present" or "absent", tostring(api and api.IsStitched and api.IsStitched()),
+        tostring(id), tostring(n), tostring(n and G[n] ~= nil), tostring(F.db and F.db.zoneInfo), tostring(WorldMapFrame and WorldMapFrame:IsShown())))
+end
+
 local function refresh()
     if not (F.db and F.db.zoneInfo) then if box then box:Hide() end return end
     build()
-    local mapID = zoneUnderCursor()
-    local info = mapID and C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
-    local name = info and info.name
+    local mapID = pickZone()
+    local name = nameOf(mapID)
     local guide = name and G[name]
     local mine, total = nil, nil
     if name then mine, total = caught(name) end
@@ -101,12 +121,12 @@ local function refresh()
     box.title:SetText(guide and ("%s  |cff9a9aa0(level %d-%d)|r"):format(name, guide[1], guide[2]) or name)
     local lines = {}
     if guide then lines[#lines + 1] = "|cff6ab0f5Fish:|r " .. guide[3] end
-    if mine then lines[#lines + 1] = ("|cffffd140You caught here (%d):|r %s"):format(total, mine) end
+    if mine then lines[#lines + 1] = ("|cffffd140You gathered here (%d):|r %s"):format(total, mine) end
     box.body:SetText(table.concat(lines, "\n"))
     box:SetHeight(box.title:GetStringHeight() + box.body:GetStringHeight() + 18)
     box:ClearAllPoints()
     -- sits bottom-right so it doesn't collide with Forager's box at the bottom-left
-    box:SetPoint("BOTTOMRIGHT", WorldMapFrame.ScrollContainer or WorldMapFrame, "BOTTOMRIGHT", -10, 10)
+    box:SetPoint("BOTTOMRIGHT", WorldMapFrame, "BOTTOMRIGHT", -14, 14)
     box:Show()
 end
 
