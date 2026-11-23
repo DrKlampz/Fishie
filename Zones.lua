@@ -92,11 +92,20 @@ local function nameOf(id)
     local info = id and C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(id)
     return info and info.name
 end
+-- your Fishing skill, or nil when it can't be read
+local function myFishing()
+    if GetNumSkillLines and GetSkillLineInfo then
+        for i = 1, GetNumSkillLines() do
+            local n, header, _, rank = GetSkillLineInfo(i)
+            if n == "Fishing" and not header then return rank end
+        end
+    end
+end
 local function pickZone()
     local ids = { zoneUnderCursor(), WorldMapFrame.GetMapID and WorldMapFrame:GetMapID(), C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player") }
     for _, id in ipairs(ids) do
         local n = nameOf(id)
-        if n and (G[n] or caught(n)) then return id end
+        if n and (G[n] or (F.ZONE_SKILL and F.ZONE_SKILL[id]) or caught(n)) then return id end
     end
     return ids[1]
 end
@@ -117,9 +126,16 @@ local function refresh()
     local guide = name and G[name]
     local mine, total = nil, nil
     if name then mine, total = caught(name) end
-    if not guide and not mine then box:Hide() return end
+    local skill = F.ZONE_SKILL and F.ZONE_SKILL[mapID]
+    if not guide and not mine and not skill then box:Hide() return end
     box.title:SetText(guide and ("%s  |cff9a9aa0(level %d-%d)|r"):format(name, guide[1], guide[2]) or name)
     local lines = {}
+    if skill then
+        -- the skill the zone's water expects (anywhere you can fish): below it you mostly pull up junk
+        local have = myFishing()
+        local colour = (have and have >= skill) and "|cff55ff55" or (have and "|cffff9955" or "|cffffffff")
+        lines[#lines + 1] = ("|cff6ab0f5Fishing skill for this zone:|r %s%d|r%s"):format(colour, skill, have and (" |cff9a9aa0(you have " .. have .. ")|r") or "")
+    end
     if guide then lines[#lines + 1] = "|cff6ab0f5Fish:|r " .. guide[3] end
     if mine then lines[#lines + 1] = ("|cffffd140You gathered here (%d):|r %s"):format(total, mine) end
     box.body:SetText(table.concat(lines, "\n"))

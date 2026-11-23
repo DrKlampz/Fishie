@@ -18,6 +18,7 @@ LookSetup.lua
 Gear.lua
 Cast.lua
 Log.lua
+ZoneSkill.lua
 Zones.lua
 PoolData.lua
 Pools.lua
