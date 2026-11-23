@@ -127,9 +127,12 @@ local function Spawns(m)
         local kind = d.kinds[id]
         local label = kind and kind.n or "Fishing pool"
         -- ForeverDB's "Open water" is a spot players fished at in Forever, not a pool: it shows as a fishing spot
-        if label == "Open water" then label = nil end
+        local open = label == "Open water"
+        if open then label = nil end
+        local from = #list
         if e.f ~= "" then decode(e.f, list, label, "seen") end
         if e.c ~= "" then decode(e.c, list, label, "classic") end
+        if open then for i = from + 1, #list do list[i].open = true end end
     end
     decoded[m] = list
     return list
@@ -142,10 +145,12 @@ local function List(m)
     for _, s in ipairs(mine or {}) do out[#out + 1] = s end
     local w, h = MapSize(m)
     for _, s in ipairs(Spawns(m) or {}) do
-        local covered = false
+        local covered = s.open and not (F.db and F.db.poolOpen)   -- plain open water is only shown when asked for
+        if not covered then
         for _, n in ipairs(mine or {}) do
             local dx, dy = (n.x - s.x) * w, (n.y - s.y) * h
             if dx * dx + dy * dy < 30 * 30 then covered = true break end
+        end
         end
         if not covered then out[#out + 1] = s end
     end
@@ -255,7 +260,7 @@ function P.RefreshWorld()
         P.sizeFactor = far and 0.75 or 1
         local size = (F.db.poolSize or 14) * P.sizeFactor / math.max(scale, 0.05)
         local sig = table.concat({ tostring(view), floor(w or 0), P.zoomGen or 0, tostring(api ~= nil), P.rev or 0, F.db.poolSize or 0,
-            tostring(F.db.poolFar), tostring(F.db.poolNeedProf), tostring(P.HasFishing()), tostring(F.db.poolSpawns), F.db.poolMax or 0, tostring(F.db.poolClassic) }, ":")
+            tostring(F.db.poolFar), tostring(F.db.poolNeedProf), tostring(P.HasFishing()), tostring(F.db.poolSpawns), F.db.poolMax or 0, tostring(F.db.poolClassic), tostring(F.db.poolOpen) }, ":")
         if sig == P.lastSig then used.world = P.lastUsed or 0 release("world") return end
         if w and w > 0 and view and not (far and not F.db.poolFar) then
             local zones = {}

@@ -27,6 +27,7 @@ local function Options()
             L.Koff("Icons on the world map", db, "poolMap", pools),
             L.Koff("Icons on the minimap", db, "poolMini", pools),
             L.Koff("Show pool spawn points from ForeverDB.net", db, "poolSpawns", pools),
+            L.Koff("Also show plain open-water spots (where players fished, not pools)", db, "poolOpen", pools),
             L.Koff("Include Classic spawn points nobody has seen in Forever", db, "poolClassic", pools),
             L.Koff("Show icons when zoomed out to a continent or the world", db, "poolFar", pools),
             L.Slider("World map icon size", db, "poolSize", 4, 40, 1, "%d", pools),

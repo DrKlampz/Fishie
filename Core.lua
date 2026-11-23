@@ -14,6 +14,7 @@ F.DEFAULTS = {
     poolMap = true,           -- pool and spot icons on the world map
     poolMini = true,          -- ...and on the minimap
     poolSpawns = true,        -- pool spawn points from ForeverDB.net
+    poolOpen = false,         -- also show ForeverDB's plain open-water spots (places someone fished, not pools)
     poolClassic = true,       -- include Classic spawn points nobody has seen in Forever
     poolFar = false,          -- icons when zoomed out to a continent or the world
     poolSize = 14, poolMiniSize = 14, poolAlpha = 1, poolMax = 300,
