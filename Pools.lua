@@ -339,7 +339,7 @@ function P.RefreshMini()
             local w, h = MapSize(m)
             local radius = Radius()
             local halfW, halfH = Minimap:GetWidth() * 0.5, Minimap:GetHeight() * 0.5
-            local size = F.db.poolSize or 14
+            local size = F.db.poolMiniSize or 14
             local shown = 0
             for _, s in ipairs(List(m)) do
                 if shown >= 30 then break end
