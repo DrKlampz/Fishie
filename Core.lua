@@ -9,6 +9,7 @@ local function Trim(s) return (tostring(s or ""):gsub("^%s+", ""):gsub("%s+$", "
 F.Trim = Trim
 
 F.DEFAULTS = {
+    zoneInfo = true,          -- zone fish guide on the world map
     doubleClick = true,       -- double right-click in the world casts Fishing
     castButton = "BUTTON2",   -- mouse button that casts / loots: BUTTON1 left, BUTTON2 right, BUTTON3 middle, BUTTON4/5 side buttons
     castClicks = 1,           -- 1 = single right-click casts (pole in hand), 2 = double right-click

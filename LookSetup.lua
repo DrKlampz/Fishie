@@ -54,7 +54,7 @@ F.WinLook.Setup({
     media = "Interface\\AddOns\\Fishie\\Media\\",
     db = function() return FishieDB end,
     windows = {
-        { id = "main", name = "Main window", global = "FishieFrame", strip = "template", defaultOn = true, title = function(f) return f.TitleText end },
+        { id = "main", name = "Main window", global = "FishieFrame", strip = "backdrop", hide = { "bar" }, defaultOn = true, title = function(f) return f.title end, close = function(f) return f.closeBtn end },
         { id = "hud", name = "On-screen HUD", global = "FishieHUD", strip = "backdrop", noScale = true },
         { id = "counter", name = "Catch counter", global = "FishieCounter", strip = "backdrop", noScale = true },
     },

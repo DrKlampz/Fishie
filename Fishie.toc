@@ -18,5 +18,6 @@ LookSetup.lua
 Gear.lua
 Cast.lua
 Log.lua
+Zones.lua
 Counter.lua
 UI.lua
