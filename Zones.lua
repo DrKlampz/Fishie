@@ -141,8 +141,14 @@ local function refresh()
     box.body:SetText(table.concat(lines, "\n"))
     box:SetHeight(box.title:GetStringHeight() + box.body:GetStringHeight() + 18)
     box:ClearAllPoints()
-    -- sits bottom-right so it doesn't collide with Forager's box at the bottom-left
-    box:SetPoint("BOTTOMRIGHT", WorldMapFrame, "BOTTOMRIGHT", -14, 14)
+    -- sits bottom-right of the map so it doesn't collide with Forager's box at the bottom-left
+    -- inside the map itself, above the coordinate bar, so it never covers the quest log beside the map
+    local sc = WorldMapFrame.ScrollContainer
+    if sc and sc.GetRight and sc:GetRight() then
+        box:SetPoint("BOTTOMRIGHT", sc, "BOTTOMRIGHT", -64, 36)
+    else
+        box:SetPoint("BOTTOMRIGHT", WorldMapFrame, "BOTTOMRIGHT", -14, 14)
+    end
     box:Show()
 end
 
