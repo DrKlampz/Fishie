@@ -19,5 +19,7 @@ Gear.lua
 Cast.lua
 Log.lua
 Zones.lua
+PoolData.lua
+Pools.lua
 Counter.lua
 UI.lua

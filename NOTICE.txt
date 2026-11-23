@@ -1,0 +1,9 @@
+Fishie - credits and sources
+
+PoolData.lua: fishing pool spawn points.
+  Data from ForeverDB.net (https://foreverdb.net)
+  Copied from ForeverDB's Data\Gather.lua (GPL-3.0 with an attribution term; see ForeverDB's LICENSE.txt and NOTICE.txt).
+  "seen" points were recorded by players in WoW Forever; "classic" points come from CMaNGOS classic-db (GPL-3.0)
+  and may differ in Forever. This file stays under GPL-3.0 with the attribution above.
+
+Everything else in Fishie is MIT licensed.

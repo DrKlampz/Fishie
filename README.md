@@ -35,3 +35,7 @@ The game needs a real click for every cast, so casting is never fully automatic.
 ## Notes
 
 If something doesn't work, run `/fishie probe` and `/fishie debug on`, and report what they say.
+
+## Credits
+
+Fishing pool spawn points: Data from ForeverDB.net (https://foreverdb.net). See NOTICE.txt.

@@ -6,6 +6,7 @@ local function Options()
     local db = function() return F.db end
     local function hud() if F.UI and F.UI.ApplyHUD then F.UI.ApplyHUD() end end
     local function counter() if F.Counter then F.Counter.Apply() F.Counter.Refresh() end end
+    local function pools() if F.Pools then F.Pools.Changed() pcall(F.Pools.RefreshWorld) pcall(F.Pools.RefreshMini) end end
     local mmdb = function() return F.db.minimap end
     return { sections = {
         { id = "cast", title = "Casting", open = true, rows = {
@@ -19,6 +20,17 @@ local function Options()
             L.Choice("Plus a random extra wait", db, "catchJitter", { { 0, "None" }, { 1, "Up to 1 second" }, { 1.5, "Up to 1.5 seconds" }, { 2, "Up to 2 seconds" }, { 3, "Up to 3 seconds" } }),
             L.Koff("Auto-loot while fishing", db, "autoLoot"),
             L.Note("Right-click casts; right-click again when the bobber splashes. Bind a key under Options > Key Bindings > Fishie to cast without the mouse."),
+        } },
+        { id = "pools", title = "Pools and fishing spots", open = true, rows = {
+            L.Koff("Remember the spots and pools I fish", db, "poolLearn"),
+            L.Koff("Icons on the world map", db, "poolMap", pools),
+            L.Koff("Icons on the minimap", db, "poolMini", pools),
+            L.Koff("Show pool spawn points from ForeverDB.net", db, "poolSpawns", pools),
+            L.Koff("Include Classic spawn points nobody has seen in Forever", db, "poolClassic", pools),
+            L.Koff("Show icons when zoomed out to a continent or the world", db, "poolFar", pools),
+            L.Slider("Icon size", db, "poolSize", 6, 36, 1, "%d", pools),
+            L.Slider("Icon opacity", db, "poolAlpha", 0.3, 1, 0.05, "%.2f", pools),
+            L.Choice("Most icons on the world map", db, "poolMax", { { 100, "100" }, { 200, "200" }, { 300, "300" }, { 600, "600" } }, pools),
         } },
         { id = "gear", title = "Pole and lures", open = true, rows = {
             L.Koff("Equip a pole when you double-click without one", db, "autoPole"),

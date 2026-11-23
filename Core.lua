@@ -9,6 +9,13 @@ local function Trim(s) return (tostring(s or ""):gsub("^%s+", ""):gsub("%s+$", "
 F.Trim = Trim
 
 F.DEFAULTS = {
+    poolLearn = true,         -- remember the spots and pools you fish
+    poolMap = true,           -- pool and spot icons on the world map
+    poolMini = true,          -- ...and on the minimap
+    poolSpawns = true,        -- pool spawn points from ForeverDB.net
+    poolClassic = true,       -- include Classic spawn points nobody has seen in Forever
+    poolFar = false,          -- icons when zoomed out to a continent or the world
+    poolSize = 14, poolAlpha = 1, poolMax = 300,
     zoneInfo = true,          -- zone fish guide on the world map
     doubleClick = true,       -- double right-click in the world casts Fishing
     castButton = "BUTTON2",   -- mouse button that casts / loots: BUTTON1 left, BUTTON2 right, BUTTON3 middle, BUTTON4/5 side buttons
