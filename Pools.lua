@@ -29,6 +29,40 @@ local function MapSize(m)
     return 1000, 1000
 end
 
+-- Whether this character has Fishing; nil when the game will not say (then nothing is hidden)
+local FISHING_IDS = { 7620, 7731, 7732, 18248, 33095, 51294, 131474 }
+local hasAt, hasVal = -100, nil
+function P.HasFishing(force)
+    local now = GetTime()
+    if not force and now - hasAt < 5 then return hasVal end
+    local known, saw = false, false
+    for _, id in ipairs(FISHING_IDS) do
+        local fn = (C_SpellBook and C_SpellBook.IsSpellKnown) or IsSpellKnown or IsPlayerSpell
+        if fn then
+            saw = true
+            local ok, k = pcall(fn, id)
+            if ok and k then known = true break end
+        end
+    end
+    if not known and GetNumSkillLines and GetSkillLineInfo then
+        local ok, n = pcall(GetNumSkillLines)
+        if ok and type(n) == "number" and n > 0 then
+            saw = true
+            for i = 1, n do
+                local ok2, name, isHeader = pcall(GetSkillLineInfo, i)
+                if ok2 and name and not isHeader and not F.IsSecret(name) and tostring(name):lower() == "fishing" then known = true break end
+            end
+        end
+    end
+    hasAt, hasVal = now, saw and known or nil
+    return hasVal
+end
+local function shouldShow()
+    if not (F.db and F.db.poolNeedProf) then return true end
+    local h = P.HasFishing()
+    return h == nil or h == true
+end
+
 -- ---------------------------------------------------------------- your spots
 -- F.db.pools[mapID] = list of { x, y, n = casts, pool = name or nil, seen = time }
 local POOL_WORDS = { "school", "pool", "patch of", "wreckage", "debris", "shoal", "oil spill", "bloodsail", "swarm" }
@@ -193,7 +227,7 @@ end
 function P.RefreshWorld()
     ensureWorld()
     used.world = 0
-    if worldOverlay and WorldMapFrame and WorldMapFrame:IsShown() and F.db.poolMap then
+    if worldOverlay and WorldMapFrame and WorldMapFrame:IsShown() and F.db.poolMap and shouldShow() then
         local view = WorldMapFrame.GetMapID and WorldMapFrame:GetMapID()
         local c = canvas()
         local w, h = c:GetWidth(), c:GetHeight()
@@ -216,7 +250,7 @@ function P.RefreshWorld()
         P.sizeFactor = far and 0.75 or 1
         local size = (F.db.poolSize or 14) * P.sizeFactor / math.max(scale, 0.05)
         local sig = table.concat({ tostring(view), floor(w or 0), P.zoomGen or 0, tostring(api ~= nil), P.rev or 0, F.db.poolSize or 0,
-            tostring(F.db.poolFar), tostring(F.db.poolSpawns), F.db.poolMax or 0, tostring(F.db.poolClassic) }, ":")
+            tostring(F.db.poolFar), tostring(F.db.poolNeedProf), tostring(P.HasFishing()), tostring(F.db.poolSpawns), F.db.poolMax or 0, tostring(F.db.poolClassic) }, ":")
         if sig == P.lastSig then used.world = P.lastUsed or 0 release("world") return end
         if w and w > 0 and view and not (far and not F.db.poolFar) then
             local zones = {}
@@ -289,7 +323,7 @@ local function Radius()
 end
 function P.RefreshMini()
     used.mini = 0
-    if Minimap and F.db and F.db.poolMini then
+    if Minimap and F.db and F.db.poolMini and shouldShow() then
         local m, px, py = PlayerPos()
         if m then
             if not miniOverlay then
@@ -362,6 +396,9 @@ F.AddHook("loaded", function()
             pcall(api.RegisterCallback, owner, "OpenMap_StitchedChanged", again)
             pcall(api.RegisterCallback, owner, "OpenMap_ViewChanged", again)
         end
+    end
+    for _, ev in ipairs({ "SKILL_LINES_CHANGED", "LEARNED_SPELL_IN_TAB", "SPELLS_CHANGED" }) do
+        pcall(function() F.On(ev, function() P.HasFishing(true) P.Changed() pcall(P.RefreshMini) if WorldMapFrame and WorldMapFrame:IsShown() then pcall(P.RefreshWorld) end end) end)
     end
     F.On("PLAYER_ENTERING_WORLD", function()
         if not WorldMapFrame and C_AddOns and C_AddOns.LoadAddOn then pcall(C_AddOns.LoadAddOn, "Blizzard_WorldMap") end

@@ -9,6 +9,7 @@ local function Trim(s) return (tostring(s or ""):gsub("^%s+", ""):gsub("%s+$", "
 F.Trim = Trim
 
 F.DEFAULTS = {
+    poolNeedProf = true,      -- only show pool icons for a character that has Fishing
     poolLearn = true,         -- remember the spots and pools you fish
     poolMap = true,           -- pool and spot icons on the world map
     poolMini = true,          -- ...and on the minimap
