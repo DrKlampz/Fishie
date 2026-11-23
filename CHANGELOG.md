@@ -1,5 +1,14 @@
 # Fishie
 
+## v0.4.26
+
+- New: fishing pools on the world map and minimap. Fishie now shows where schools and floating debris spawn (from ForeverDB.net, limited to the zones it has data for) and remembers the spots you fish. Only shown for a character that has Fishing. Choose the icon sizes, opacity and how many show in the options
+- Plain open-water spots from ForeverDB are hidden unless you switch them on
+- The world map zone box now also shows the fishing skill for the zone you point at, next to your own skill
+- Windows can be closed in combat
+- Data from ForeverDB.net (https://foreverdb.net), GPL-3.0 with an attribution term: see NOTICE.txt
+
+
 ## v0.4.25
 
 - Each character now keeps its own fishing outfit, normal gear, catch log and all-time total. Before, every character shared them, so a second fisher got the first one's outfit. Options and looks are still shared. What was saved before goes to the first character that plays.
