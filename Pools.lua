@@ -199,11 +199,22 @@ function P.RefreshWorld()
         local w, h = c:GetWidth(), c:GetHeight()
         local scale = worldOverlay:GetEffectiveScale() / UIParent:GetEffectiveScale()
         if not scale or scale <= 0 then scale = 1 end
-        local info = view and C_Map.GetMapInfo and C_Map.GetMapInfo(view)
-        local far = info and info.mapType and info.mapType <= 2
+        local api = stitched()
+        -- "far" = how much ground the window shows (with OpenMap the map underneath can stay a continent while you are
+        -- zoomed right in, so the width on screen in yards decides)
+        local far
+        do
+            local sc0 = WorldMapFrame.ScrollContainer
+            local hostW = view and MapSize(view)
+            if api and sc0 and hostW and w and w > 0 then
+                far = ((sc0:GetWidth() * sc0:GetEffectiveScale() / c:GetEffectiveScale()) / w) * hostW > 14000
+            else
+                local info = view and C_Map.GetMapInfo and C_Map.GetMapInfo(view)
+                far = info and info.mapType and info.mapType <= 2
+            end
+        end
         P.sizeFactor = far and 0.75 or 1
         local size = (F.db.poolSize or 14) * P.sizeFactor / math.max(scale, 0.05)
-        local api = stitched()
         local sig = table.concat({ tostring(view), floor(w or 0), P.zoomGen or 0, tostring(api ~= nil), P.rev or 0, F.db.poolSize or 0,
             tostring(F.db.poolFar), tostring(F.db.poolSpawns), F.db.poolMax or 0, tostring(F.db.poolClassic) }, ":")
         if sig == P.lastSig then used.world = P.lastUsed or 0 release("world") return end
