@@ -122,6 +122,11 @@ local function BuildSession(p)
             if i > 12 then lines[#lines + 1] = "..." break end
             lines[#lines + 1] = ("%s x%d"):format(s.items[nm].link or nm, s.items[nm].count)
         end
+        if s.opened > 0 then
+            lines[#lines + 1] = ""
+            lines[#lines + 1] = "|cff33ccffOpened this session:|r " .. s.opened
+            for _, ln in ipairs(F.Log.OpenLines(14, "    ")) do lines[#lines + 1] = ln end
+        end
         p.list:SetText(#lines > 0 and table.concat(lines, "\n") or "|cff888888Nothing caught yet. Right-click to cast.|r")
         p.switch:SetText(F.db.fishing and "Normal gear" or "Fishing outfit")
     end

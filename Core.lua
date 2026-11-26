@@ -29,6 +29,7 @@ F.DEFAULTS = {
     muffle = true,            -- music, ambience and voices turned down while a fishing pole is equipped
     muffleLevel = 0.25,       -- how much of their normal volume is left (0 = silent)
     announce = true,          -- one line in chat for each catch
+    trackOpens = true,        -- keep a list of the chests, clams and crates you open during the session
     debug = false,            -- /fishie debug: explain what Fishie sees in chat
     clickMod = "none",        -- hold shift / ctrl / alt for the double-click to count ("none" = no key)
     lureChoice = "best",      -- "best" or "weakest" lure first

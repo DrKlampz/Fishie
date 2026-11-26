@@ -6,7 +6,7 @@ F.Log = L
 local session
 
 function L.ResetSession()
-    session = { start = nil, casts = 0, caught = 0, items = {}, order = {} }
+    session = { start = nil, casts = 0, caught = 0, items = {}, order = {}, opened = 0, opens = {}, openOrder = {} }
 end
 L.ResetSession()
 
@@ -115,6 +115,10 @@ function L.FormatTime(sec)
 end
 
 function L.PrintSession()
+    if session.opened > 0 then
+        F.Print(("Opened this session: %d."):format(session.opened))
+        for _, line in ipairs(L.OpenLines()) do F.Print("  " .. line) end
+    end
     if session.caught == 0 then F.Print("Nothing caught this session yet.") return end
     F.Print(("This session: %d caught in %s (%.0f per hour), %d cast%s."):format(
         session.caught, L.FormatTime(L.Elapsed()), L.PerHour(), session.casts, session.casts == 1 and "" or "s"))
@@ -122,6 +126,102 @@ function L.PrintSession()
         local s = session.items[name]
         F.Print(("  %s x%d"):format(s.link or name, s.count))
     end
+end
+
+-- Chests, crates, clams and other things you open during the session (not fish, not corpses): what each was and what
+-- came out of it. A chest is a world object, a clam or crate is an item from your bags.
+local lastUse            -- the bag item you last used: { link, time }
+local lastTarget         -- the target of your last cast ("Opening" a chest names it): { name, time }
+if hooksecurefunc then
+    local function Used(bag, slot)
+        local link
+        if C_Container and C_Container.GetContainerItemLink then link = C_Container.GetContainerItemLink(bag, slot)
+        elseif GetContainerItemLink then link = GetContainerItemLink(bag, slot) end
+        if link and not F.IsSecret(link) then lastUse = { link = link, time = GetTime() } end
+    end
+    if C_Container and C_Container.UseContainerItem then pcall(hooksecurefunc, C_Container, "UseContainerItem", Used)
+    elseif UseContainerItem then pcall(hooksecurefunc, "UseContainerItem", Used) end
+end
+F.On("UNIT_SPELLCAST_SENT", function(_, unit, target)
+    if unit == "player" and type(target) == "string" and not F.IsSecret(target) and target ~= "" then
+        lastTarget = { name = target, time = GetTime() }
+    end
+end)
+
+local function SourceOf()
+    if not GetLootSourceInfo then return nil end
+    local ok, guid = pcall(GetLootSourceInfo, 1)
+    if not ok or type(guid) ~= "string" or F.IsSecret(guid) then return nil end
+    return guid:match("^(%a+)%-")
+end
+
+-- the name of what was just opened, as best the game lets us tell
+local function OpenedName(kind)
+    local now = GetTime()
+    if kind == "Item" then
+        if lastUse and now - lastUse.time < 6 then
+            local nm = lastUse.link:match("%[(.-)%]")
+            if nm then return nm, lastUse.link end
+        end
+        return "Something from your bags"
+    end
+    if lastTarget and now - lastTarget.time < 8 then return lastTarget.name end
+    local tip = _G.GameTooltipTextLeft1
+    if tip and _G.GameTooltip and GameTooltip:IsShown() then
+        local t = tip:GetText()
+        if t and not F.IsSecret(t) and t ~= "" then return t end
+    end
+    return "Chest or container"
+end
+
+function L.TrackOpen()
+    if F.db.trackOpens == false then return end
+    local kind = SourceOf()
+    if kind ~= "GameObject" and kind ~= "Item" then return end
+    if L.openCounted then return end
+    L.openCounted = true
+    local name, link = OpenedName(kind)
+    session.start = session.start or Now()
+    session.opened = session.opened + 1
+    local o = session.opens[name]
+    if not o then o = { count = 0, link = link, loot = {}, order = {} } session.opens[name] = o session.openOrder[#session.openOrder + 1] = name end
+    o.count = o.count + 1
+    o.link = o.link or link
+    local n = GetNumLootItems and GetNumLootItems() or 0
+    local gotCoin = false
+    for i = 1, n do
+        local ltype = GetLootSlotType and GetLootSlotType(i)
+        local _, nm, qty = GetLootSlotInfo(i)
+        if ltype == 2 then
+            gotCoin = true   -- money: it is in the window, but the amount is a text; counted in the chat line below
+        elseif nm and not F.IsSecret(nm) then
+            qty = tonumber(qty) or 1
+            local it = o.loot[nm]
+            if not it then it = { count = 0, link = GetLootSlotLink and GetLootSlotLink(i) } o.loot[nm] = it o.order[#o.order + 1] = nm end
+            it.count = it.count + qty
+        end
+    end
+    if F.db.announce then F.Print(("Opened %s."):format(link or name)) end
+    F.Debug(("opened %s (%s), %d slot(s)"):format(name, tostring(kind), n))
+    if F.UI then F.UI.Refresh() end
+    if F.Counter then F.Counter.Refresh() end
+end
+F.On("LOOT_CLOSED", function() L.openCounted = false end)
+
+-- Lines for the session views: "Sunken Chest x3" with what they gave underneath.
+function L.OpenLines(maxLines, indent)
+    local out = {}
+    for _, name in ipairs(session.openOrder) do
+        local o = session.opens[name]
+        out[#out + 1] = ("%s x%d"):format(o.link or name, o.count)
+        for _, nm in ipairs(o.order) do
+            if #out >= (maxLines or 99) then out[#out + 1] = "..." return out end
+            local it = o.loot[nm]
+            out[#out + 1] = (indent or "   ") .. ("%s x%d"):format(it.link or nm, it.count)
+        end
+        if #out >= (maxLines or 99) then out[#out + 1] = "..." return out end
+    end
+    return out
 end
 
 -- Catches are seen two ways, so one failing doesn't lose them: the loot window of a fishing
@@ -147,9 +247,11 @@ local function OnLoot(event)
     F.Debug(("loot window opened; IsFishingLoot=%s recentCast=%s"):format(
         tostring(IsFishingLoot and IsFishingLoot()), tostring(F.IsFishingNow and F.IsFishingNow())))
     if isFishing and not (IsFishingLoot and IsFishingLoot()) and LootFromThings() then isFishing = false end
+    -- a chest (a world object that is not the bobber) is not a catch either, whatever the fishing timer says
+    if isFishing and IsFishingLoot and not IsFishingLoot() and SourceOf() == "GameObject" then isFishing = false end
     L.lastLootAt = GetTime()
     L.lastLootIsFishing = isFishing and true or false
-    if not isFishing then bagsBefore = nil return end
+    if not isFishing then bagsBefore = nil L.TrackOpen() return end
     lootSeen = (event == "LOOT_READY") and GetTime() or 0
     -- the game can send the "loot is ready" event more than once for one catch (auto-loot does):
     -- one cast is one catch, so only the first loot window after a cast counts

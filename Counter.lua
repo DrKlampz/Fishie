@@ -40,6 +40,15 @@ local function Build()
             local it = s.items[name]
             GameTooltip:AddDoubleLine(name, "x" .. it.count, 1, 1, 1, 1, 1, 1)
         end
+        if s.opened > 0 then
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddDoubleLine("Opened", "x" .. s.opened, 0.2, 0.8, 1, 1, 1, 1)
+            for _, name in ipairs(s.openOrder) do
+                local o = s.opens[name]
+                GameTooltip:AddDoubleLine("  " .. name, "x" .. o.count, 1, 1, 1, 1, 1, 1)
+                for _, nm in ipairs(o.order) do GameTooltip:AddDoubleLine("      " .. nm, "x" .. o.loot[nm].count, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7) end
+            end
+        end
         GameTooltip:AddLine("Right-click to reset the session count.", 0.5, 0.5, 0.5)
         GameTooltip:Show()
     end)

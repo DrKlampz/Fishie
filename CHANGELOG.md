@@ -1,5 +1,10 @@
 # Fishie
 
+## v0.4.28
+
+- New: Fishie now keeps a list of the chests, clams, crates and other things you open during the session, with what came out of each. It shows on the Session tab, in the counter's tooltip and with /fishie session. Turn it off in the options
+- A chest opened soon after a cast is no longer counted as a catch
+
 ## v0.4.27
 
 - The zone box on the world map now sits inside the map, above the coordinates bar, instead of covering the quest log
