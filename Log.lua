@@ -68,10 +68,23 @@ local function BagCounts()
 end
 
 local bagsBefore
+-- The bag and chat fallbacks cannot tell a catch from anything else you picked up while the line was out. So they
+-- stand down if you fought something or looted a corpse or chest since the cast: the bobber's own loot window is
+-- the only thing that counts then.
+L.castAt, L.combatAt = 0, 0
+F.On("PLAYER_REGEN_DISABLED", function() L.combatAt = GetTime() end)
+local function SomethingElseSinceCast()
+    if InCombatLockdown and InCombatLockdown() then return true end
+    if (L.combatAt or 0) >= (L.castAt or 0) then return true end
+    if L.lastLootIsFishing == false and (L.lastLootAt or 0) >= (L.castAt or 0) then return true end
+    return false
+end
+
 function L.CheckBags()
     local before = bagsBefore
     bagsBefore = nil
     if not before or (L.recordedSinceCast or 0) > 0 then return end
+    if SomethingElseSinceCast() then F.Debug("bag check skipped: combat or other loot since the cast") return end
     local after = BagCounts()
     if not after then return end
     for nm, e in pairs(after) do
@@ -86,6 +99,7 @@ function L.CheckBags()
 end
 
 function L.OnCast()
+    L.castAt = GetTime()
     L.catchCounted = false
     L.recordedSinceCast = 0
     bagsBefore = BagCounts()
@@ -307,6 +321,7 @@ end
 F.On("CHAT_MSG_LOOT", function(_, msg)
     if not msg or F.IsSecret(msg) or not (F.IsFishingNow and F.IsFishingNow()) then return end
     if L.lastLootIsFishing == false and L.lastLootAt and GetTime() - L.lastLootAt < 5 then return end   -- a corpse or chest, not the bobber
+    if SomethingElseSinceCast() then return end
     local link = msg:match("(|c%x+|Hitem:.-|h%[.-%]|h|r)") or msg:match("(|Hitem:.-|h%[.-%]|h)")
     if not link then return end
     local mine = false

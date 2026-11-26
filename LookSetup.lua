@@ -22,7 +22,7 @@ local function Options()
             L.Note("Right-click casts; right-click again when the bobber splashes. Bind a key under Options > Key Bindings > Fishie to cast without the mouse."),
         } },
         { id = "pools", title = "Pools and fishing spots", open = true, rows = {
-            L.Koff("Remember the spots and pools I fish", db, "poolLearn"),
+            L.Koff("Remember the pools I fish", db, "poolLearn"),
             L.Koff("Only show them for a character that has Fishing", db, "poolNeedProf", pools),
             L.Koff("Icons on the world map", db, "poolMap", pools),
             L.Koff("Icons on the minimap", db, "poolMini", pools),

@@ -1,5 +1,12 @@
 # Fishie
 
+## v0.4.29
+
+- Fixed: things you picked up while fishing, such as slime drops from something you killed, could be counted as catches. If you fought something or looted a corpse or chest since the cast, only the bobber's own loot window counts now
+
+- Fixed: casting somewhere no longer adds a fishing spot to the map. Only pools are remembered, and spots saved by older versions are no longer shown
+- Pool icons on the world map and minimap now show the fish (or item) the pool gives, such as the sagefish for a Sagefish School, instead of the same generic fish for every pool
+
 ## v0.4.28
 
 - New: Fishie now keeps a list of the chests, clams, crates and other things you open during the session, with what came out of each. It shows on the Session tab, in the counter's tooltip and with /fishie session. Turn it off in the options

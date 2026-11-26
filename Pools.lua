@@ -80,6 +80,7 @@ local function Learn()
     local m, x, y = PlayerPos()
     if not m then return end
     local name = poolNameUnderCursor()
+    if not name then return end   -- only pools are remembered: the place you happen to cast is not a fishing spot
     if name and GetPlayerFacing then
         -- the pool is out in the water in front of you: about 18 yards that way
         local f = GetPlayerFacing()
@@ -110,10 +111,10 @@ F.AddHook("cast", function() C_Timer.After(0.3, function() pcall(Learn) end) end
 
 -- ---------------------------------------------------------------- spawn points (ForeverDB.net)
 local decoded, merged = {}, {}
-local function decode(str, out, label, src)
+local function decode(str, out, label, src, item)
     for i = 1, #str - 3, 4 do
         local x, y = tonumber(str:sub(i, i + 1), 36), tonumber(str:sub(i + 2, i + 3), 36)
-        if x and y then out[#out + 1] = { x = x / 1000, y = y / 1000, pool = label, spawn = src } end
+        if x and y then out[#out + 1] = { x = x / 1000, y = y / 1000, pool = label, spawn = src, item = item } end
     end
 end
 local function Spawns(m)
@@ -130,8 +131,9 @@ local function Spawns(m)
         local open = label == "Open water"
         if open then label = nil end
         local from = #list
-        if e.f ~= "" then decode(e.f, list, label, "seen") end
-        if e.c ~= "" then decode(e.c, list, label, "classic") end
+        local itemId = kind and kind.item and kind.item > 0 and kind.item or nil
+        if e.f ~= "" then decode(e.f, list, label, "seen", itemId) end
+        if e.c ~= "" then decode(e.c, list, label, "classic", itemId) end
         if open then for i = from + 1, #list do list[i].open = true end end
     end
     decoded[m] = list
@@ -142,7 +144,7 @@ local function List(m)
     if merged[m] then return merged[m] end
     local out = {}
     local mine = F.db and F.db.pools and F.db.pools[m]
-    for _, s in ipairs(mine or {}) do out[#out + 1] = s end
+    for _, s in ipairs(mine or {}) do if s.pool then out[#out + 1] = s end end   -- spots saved by older versions are not shown
     local w, h = MapSize(m)
     for _, s in ipairs(Spawns(m) or {}) do
         local covered = s.open and not (F.db and F.db.poolOpen)   -- plain open water is only shown when asked for
@@ -207,10 +209,30 @@ local function acquire(kind, parent)
     return pin
 end
 local function release(kind) for i = used[kind] + 1, #pool[kind] do pool[kind][i]:Hide() end end
+-- a pool shows the fish (or item) it gives, so you can tell a sagefish school from floating wreckage at a glance
+local itemByName
+local function IconFor(s)
+    if not s.pool then return ICON_SPOT end
+    local item = s.item
+    if not item then
+        if not itemByName then
+            itemByName = {}
+            for _, k in pairs((F.POOLS and F.POOLS.kinds) or {}) do
+                if k.n and k.item and k.item > 0 then itemByName[k.n:lower()] = k.item end
+            end
+        end
+        item = itemByName[tostring(s.pool):lower()]
+    end
+    if item then
+        local tex = (C_Item and C_Item.GetItemIconByID and C_Item.GetItemIconByID(item)) or (GetItemIcon and GetItemIcon(item))
+        if tex then return tex end
+    end
+    return ICON_POOL
+end
 local function style(pin, s, size)
     pin.spot = s
     setPinSize(pin, size)
-    pin.icon:SetTexture(s.pool and ICON_POOL or ICON_SPOT)
+    pin.icon:SetTexture(IconFor(s))
     local a = F.db.poolAlpha or 1
     if s.spawn == "classic" then a = a * 0.6 end
     pin:SetAlpha(a)
