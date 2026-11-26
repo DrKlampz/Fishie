@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.4.30
+
+- Fixed: "Your lure is about to run out" was shown when a weapon oil, sharpening stone or other temporary enchant on a staff or sword was running out. Lure warnings now only happen when a fishing pole is in your main hand
+
 ## v0.4.29
 
 - Fixed: things you picked up while fishing, such as slime drops from something you killed, could be counted as catches. If you fought something or looted a corpse or chest since the cast, only the bobber's own loot window counts now

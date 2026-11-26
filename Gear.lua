@@ -114,6 +114,8 @@ end
 -- Seconds left on the pole's lure, or nil when there is none.
 function G.LureTimeLeft()
     if not GetWeaponEnchantInfo then return nil end
+    -- only a lure on a fishing pole counts: an oil or stone on a staff or sword is not a lure
+    if not G.EquippedPole() then return nil end
     local has, exp = GetWeaponEnchantInfo()
     if not has then return nil end
     return exp and (exp / 1000) or 9999
