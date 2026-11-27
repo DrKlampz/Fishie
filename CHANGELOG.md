@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.4.32
+
+- Fixed random things being logged while you were not fishing: loot from anything else (mobs, herbs, chests) within about 30 seconds of a cast was counted as a catch, and any other channeled spell ending counted as reeling in. Now only the game's own "this is fishing loot" counts, and only the fishing line ending starts a bag check
+
 ## v0.4.31
 
 - Fixed: an item you won on a roll in a dungeon was reported as "Caught" when you had cast a line in the last half minute. A catch is now only counted within a few seconds of the line coming in, and never while a line is out, so rolls, quest rewards and mail are no longer taken for catches

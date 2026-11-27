@@ -402,6 +402,7 @@ F.On("UNIT_SPELLCAST_SUCCEEDED", function(_, unit, _, spellID)
 end)
 F.On("UNIT_SPELLCAST_CHANNEL_STOP", function(_, unit)
     if unit ~= "player" then return end
+    if not lineOut then return end     -- some other channeled spell ended, not the fishing line
     F.Debug("channel stop")
     F.lastChannelStop = GetTime()      -- a real catch shows up within a few seconds of this
     lineOut = false

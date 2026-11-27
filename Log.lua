@@ -265,7 +265,10 @@ end
 
 local function OnLoot(event)
     if event == "LOOT_OPENED" and GetTime() - lootSeen < 0.5 then return end   -- LOOT_READY already counted this window
-    local isFishing = (IsFishingLoot and IsFishingLoot()) or (F.IsFishingNow and F.IsFishingNow())
+    -- the game says whether this loot window is a fishing catch; only guess from the timer when it can't say
+    local isFishing
+    if IsFishingLoot then isFishing = IsFishingLoot() and true or false
+    else isFishing = F.IsFishingNow and F.IsFishingNow() end
     F.Debug(("loot window opened; IsFishingLoot=%s recentCast=%s"):format(
         tostring(IsFishingLoot and IsFishingLoot()), tostring(F.IsFishingNow and F.IsFishingNow())))
     if isFishing and not (IsFishingLoot and IsFishingLoot()) and LootFromThings() then isFishing = false end
@@ -308,7 +311,7 @@ F.On("LOOT_CLOSED", function()
 end)
 -- No loot window at all (auto-loot took it instantly): look at the bags once the line is in.
 F.On("UNIT_SPELLCAST_CHANNEL_STOP", function(_, unit)
-    if unit == "player" and F.IsFishingNow() then C_Timer.After(2.5, L.CheckBags) end
+    if unit == "player" and F.IsFishingNow() and F.lastChannelStop and GetTime() - F.lastChannelStop < 1 then C_Timer.After(2.5, L.CheckBags) end
 end)
 
 local function Esc(s) return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")) end
