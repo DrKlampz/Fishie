@@ -48,7 +48,7 @@ local function Options()
             L.Koff("Counter: only with a fishing pole equipped", db, "counterPoleOnly", counter),
             L.Koff("Counter: show the all-time total", db, "counterTotal", counter),
             L.Koff("Counter: show catches per hour", db, "counterRate", counter),
-            L.Koff("Keep a list of the chests, clams and crates I open this session", db, "trackOpens"),
+            L.Koff("Also keep a list of the chests, clams and crates I open (off: only what I fish up)", db, "keepOpensList"),
             L.Koff("Counter: lock its position", db, "counterLock"),
             L.Note("Hover the counter for this session's catches; right-click it to reset the session."),
         } },

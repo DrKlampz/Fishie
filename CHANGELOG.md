@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.4.31
+
+- Changed: Fishie now only tracks what you fish up. It no longer reports or lists herbs, chests, clams or anything else you open or gather ("Opened Serpentbloom."). If you want the list of opened chests and crates back, turn on "Also keep a list of the chests, clams and crates I open" in the options
+
 ## v0.4.30
 
 - Fixed: "Your lure is about to run out" was shown when a weapon oil, sharpening stone or other temporary enchant on a staff or sword was running out. Lure warnings now only happen when a fishing pole is in your main hand

@@ -189,7 +189,7 @@ local function OpenedName(kind)
 end
 
 function L.TrackOpen()
-    if F.db.trackOpens == false then return end
+    if F.db.keepOpensList ~= true then return end     -- Fishie only tracks what you fish up unless this is switched on
     local kind = SourceOf()
     if kind ~= "GameObject" and kind ~= "Item" then return end
     if L.openCounted then return end
