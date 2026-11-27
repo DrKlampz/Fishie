@@ -80,10 +80,18 @@ local function SomethingElseSinceCast()
     return false
 end
 
+-- A catch lands within a few seconds of the line coming in. Anything that reaches your bags later, or while a line is out
+-- (a won roll, mail, a quest reward), is not from the bobber.
+local function JustReeledIn()
+    if UnitChannelInfo and UnitChannelInfo("player") then return false end
+    return F.lastChannelStop ~= nil and GetTime() - F.lastChannelStop < 6
+end
+
 function L.CheckBags()
     local before = bagsBefore
     bagsBefore = nil
     if not before or (L.recordedSinceCast or 0) > 0 then return end
+    if not JustReeledIn() then F.Debug("bag check skipped: the line was not just reeled in") return end
     if SomethingElseSinceCast() then F.Debug("bag check skipped: combat or other loot since the cast") return end
     local after = BagCounts()
     if not after then return end
@@ -322,6 +330,7 @@ F.On("CHAT_MSG_LOOT", function(_, msg)
     if not msg or F.IsSecret(msg) or not (F.IsFishingNow and F.IsFishingNow()) then return end
     if L.lastLootIsFishing == false and L.lastLootAt and GetTime() - L.lastLootAt < 5 then return end   -- a corpse or chest, not the bobber
     if SomethingElseSinceCast() then return end
+    if not JustReeledIn() then return end        -- not from the bobber: a won roll, a quest reward, mail
     local link = msg:match("(|c%x+|Hitem:.-|h%[.-%]|h|r)") or msg:match("(|Hitem:.-|h%[.-%]|h)")
     if not link then return end
     local mine = false

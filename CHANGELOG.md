@@ -2,6 +2,7 @@
 
 ## v0.4.31
 
+- Fixed: an item you won on a roll in a dungeon was reported as "Caught" when you had cast a line in the last half minute. A catch is now only counted within a few seconds of the line coming in, and never while a line is out, so rolls, quest rewards and mail are no longer taken for catches
 - Changed: Fishie now only tracks what you fish up. It no longer reports or lists herbs, chests, clams or anything else you open or gather ("Opened Serpentbloom."). If you want the list of opened chests and crates back, turn on "Also keep a list of the chests, clams and crates I open" in the options
 
 ## v0.4.30

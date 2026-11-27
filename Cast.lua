@@ -403,6 +403,7 @@ end)
 F.On("UNIT_SPELLCAST_CHANNEL_STOP", function(_, unit)
     if unit ~= "player" then return end
     F.Debug("channel stop")
+    F.lastChannelStop = GetTime()      -- a real catch shows up within a few seconds of this
     lineOut = false
     F.fishingUntil = math.max(F.fishingUntil, GetTime() + 15)   -- the catch arrives just after
     C.CatchOff()
