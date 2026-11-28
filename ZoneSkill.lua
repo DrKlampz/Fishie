@@ -1,6 +1,6 @@
--- Data: ForeverDB.net (https://foreverdb.net), build 1.60.1.71037. Reuse requires this credit: see NOTICE.txt (GPL-3.0 section 7(b)).
+-- Data: ForeverDB.net (https://foreverdb.net), build 1.60.1.71139. Reuse requires this credit: see NOTICE.txt (GPL-3.0 section 7(b)).
 -- Data from ForeverDB.net (https://foreverdb.net), GPL-3.0 with an attribution term. The Classic fishing skill of each zone
--- (copied from the "fish" value in ForeverDB's Data\Gather.lua, built 2026-11-23), keyed by map id. In Forever it may differ.
+-- (copied from the "fish" value in ForeverDB's Data\Gather.lua, built 2026-11-27), keyed by map id. In Forever it may differ.
 local ADDON_NAME, F = ...
 F.ZONE_SKILL = {
   [1411] = 25,

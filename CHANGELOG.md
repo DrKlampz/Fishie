@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.4.33
+
+- Updated the built-in fishing pool spawn points and zone fishing skills to the latest ForeverDB.net data (build of 2026-11-27). Everything Fishie uses from it is part of Fishie itself; it does not read or need any other add-on
+
 ## v0.4.32
 
 - Fixed random things being logged while you were not fishing: loot from anything else (mobs, herbs, chests) within about 30 seconds of a cast was counted as a catch, and any other channeled spell ending counted as reeling in. Now only the game's own "this is fishing loot" counts, and only the fishing line ending starts a bag check
