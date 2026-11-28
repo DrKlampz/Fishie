@@ -1,5 +1,9 @@
 # Fishie
 
+## v0.4.34
+
+- New: crests for the window watermark. Pick one from the watermark/emblem list in the Look options: the Horde and Alliance crests, the Alliance lion, Kirin Tor, a Horde symbol, and a crest for every race (Human, Dwarf, Night Elf, Gnome, Draenei, Worgen, Orc, Troll, Tauren, Forsaken, Blood Elf, Goblin, Pandaren). The race and faction crests always show in their own colors
+
 ## v0.4.33
 
 - Updated the built-in fishing pool spawn points and zone fishing skills to the latest ForeverDB.net data (build of 2026-11-27). Everything Fishie uses from it is part of Fishie itself; it does not read or need any other add-on
